@@ -1,0 +1,19 @@
+# See https://pre-commit.com for more information
+
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.1
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: local
+    hooks:
+      - id: pytest-collector-watcher
+        name: pytest (collector-watcher)
+        entry: bash -c 'cd ecosystem-automation/collector-watcher && uv run pytest tests/ -v'
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [commit]
