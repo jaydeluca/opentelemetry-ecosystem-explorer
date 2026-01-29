@@ -56,13 +56,16 @@ jobs:
       - name: Check for inventory changes
         id: check_changes
         run: |
-          if git diff --quiet ecosystem-registry/; then
+          # Check for both tracked changes and untracked files
+          git add -N ecosystem-registry/ 2>/dev/null || true
+          if git diff --quiet ecosystem-registry/ && [ -z "$(git ls-files --others --exclude-standard ecosystem-registry/)" ]; then
             echo "has_changes=false" >> $GITHUB_OUTPUT
           else
             echo "has_changes=true" >> $GITHUB_OUTPUT
             # Capture diff stats for PR body
             echo "diff_stats<<EOF" >> $GITHUB_OUTPUT
-            git diff --stat ecosystem-registry/ >> $GITHUB_OUTPUT
+            git diff --stat ecosystem-registry/ 2>/dev/null || echo "New files added"
+            git ls-files --others --exclude-standard ecosystem-registry/ | sed 's/^/ + /' || true
             echo "EOF" >> $GITHUB_OUTPUT
           fi
 
