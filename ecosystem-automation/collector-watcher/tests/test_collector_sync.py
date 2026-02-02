@@ -94,7 +94,7 @@ def test_scan_version_without_checkout(collector_sync, sample_components):
         mock_instance.scan_all_components.return_value = sample_components
         mock_scanner.return_value = mock_instance
 
-        version = Version("1.112.0")
+        version = Version("0.112.0")
         result = collector_sync.scan_version("core", version, checkout=False)
 
         assert result == sample_components
@@ -181,7 +181,7 @@ def test_cleanup_multiple_snapshots(collector_sync, sample_components):
         assert not collector_sync.inventory_manager.version_exists("core", snapshot)
 
 
-def test_running_the_complete_sync_workflow(collector_sync, sample_components):
+def test_complete_sync_workflow(collector_sync, sample_components):
     with patch("collector_watcher.collector_sync.ComponentScanner") as mock_scanner:
         mock_instance = Mock()
         mock_instance.scan_all_components.return_value = sample_components
