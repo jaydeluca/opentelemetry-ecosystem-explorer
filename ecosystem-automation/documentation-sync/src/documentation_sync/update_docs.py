@@ -32,6 +32,65 @@ def get_latest_version(inventory_manager: InventoryManager, distribution: Distri
     return version
 
 
+def _is_experimental_component(name: str, component_type: str) -> bool:
+    """Check if component is experimental (x-prefixed)."""
+    return name == f"x{component_type}"
+
+
+def _filter_experimental_components(components: list[dict], component_type: str) -> list[dict]:
+    """Remove experimental 'x' components from list."""
+    return [c for c in components if not _is_experimental_component(c.get("name"), component_type)]
+
+
+def _get_distributions(component: dict) -> list[str]:
+    """Extract distributions list from component metadata."""
+    return component.get("metadata", {}).get("status", {}).get("distributions", [])
+
+
+def _merge_component_metadata(existing: dict, new: dict) -> None:
+    """
+    Merge metadata from new component into existing component.
+
+    Updates existing component in-place with merged distributions.
+    """
+    existing_dists = _get_distributions(existing)
+    new_dists = _get_distributions(new)
+
+    all_dists = sorted(set(existing_dists) | set(new_dists))
+
+    if new.get("metadata") and not existing.get("metadata"):
+        existing["metadata"] = new["metadata"].copy()
+
+    if "metadata" not in existing:
+        existing["metadata"] = {}
+    if "status" not in existing["metadata"]:
+        existing["metadata"]["status"] = {}
+    existing["metadata"]["status"]["distributions"] = all_dists
+
+
+def _add_component_to_map(component_map: dict, component: dict, source_repo: str, component_type: str) -> None:
+    """
+    Add or merge a component into the component map.
+
+    Args:
+        component_map: Dictionary mapping component names to component data
+        component: Component to add
+        source_repo: Source repository ("core" or "contrib")
+        component_type: Type of component (receiver, processor, etc.)
+    """
+    name = component.get("name")
+
+    if _is_experimental_component(name, component_type):
+        return
+
+    if name in component_map:
+        _merge_component_metadata(component_map[name], component)
+    else:
+        component_copy = component.copy()
+        component_copy["source_repo"] = source_repo
+        component_map[name] = component_copy
+
+
 def merge_inventories(core_inventory: dict, contrib_inventory: dict) -> dict:
     """
     Merge core and contrib inventories into a unified inventory.
@@ -56,52 +115,12 @@ def merge_inventories(core_inventory: dict, contrib_inventory: dict) -> dict:
 
         component_map = {}
 
-        # Add core components
-        for comp in core_comps:
-            name = comp.get("name")
-            # Skip experimental "x" components (e.g., xreceiver, xexporter, xconnector)
-            if name == f"x{component_type}":
-                continue
-            comp_copy = comp.copy()
-            comp_copy["source_repo"] = "core"
-            component_map[name] = comp_copy
+        for component in core_comps:
+            _add_component_to_map(component_map, component, "core", component_type)
 
-        # Merge or add contrib components
-        for comp in contrib_comps:
-            name = comp.get("name")
-            # Skip experimental "x" components (e.g., xreceiver, xexporter, xconnector)
-            if name == f"x{component_type}":
-                continue
-            if name in component_map:
-                # Component exists in both - merge distributions
-                # Source repo is CORE because that's where the code lives
-                existing = component_map[name]
-                existing_dists = existing.get("metadata", {}).get("status", {}).get("distributions", [])
-                contrib_dists = comp.get("metadata", {}).get("status", {}).get("distributions", [])
+        for component in contrib_comps:
+            _add_component_to_map(component_map, component, "contrib", component_type)
 
-                # Combine and deduplicate distributions
-                all_dists = sorted(set(existing_dists) | set(contrib_dists))
-
-                # Update metadata with merged distributions
-                if comp.get("metadata") and not existing.get("metadata"):
-                    # Contrib has metadata but core doesn't - use contrib's
-                    existing["metadata"] = comp["metadata"].copy()
-
-                # Ensure metadata structure exists
-                if "metadata" not in existing:
-                    existing["metadata"] = {}
-                if "status" not in existing["metadata"]:
-                    existing["metadata"]["status"] = {}
-                existing["metadata"]["status"]["distributions"] = all_dists
-
-                # Keep source_repo as "core" since component is in core repo
-            else:
-                # Component only in contrib
-                comp_copy = comp.copy()
-                comp_copy["source_repo"] = "contrib"
-                component_map[name] = comp_copy
-
-        # Convert map back to list and sort alphabetically by name for consistent output
         merged["components"][component_type] = sorted(component_map.values(), key=lambda c: c.get("name", ""))
 
     return merged

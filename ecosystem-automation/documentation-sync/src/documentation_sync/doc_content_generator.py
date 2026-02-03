@@ -108,7 +108,6 @@ class DocContentGenerator:
         status = metadata.get("status", {})
         stability = status.get("stability", {})
 
-        # Check if "unmaintained" is one of the stability levels
         return "unmaintained" in stability
 
     @staticmethod
@@ -128,6 +127,64 @@ class DocContentGenerator:
             return [c for c in components if c.get("subtype") is None]
         else:
             return [c for c in components if c.get("subtype") == subtype]
+
+    @staticmethod
+    def _generate_table_header(component_type: str) -> str:
+        """Generate table header for a component type."""
+        if component_type == "extension":
+            return "| Name | Distributions[^1] | Stability[^2] |\n|------|-------------------|---------------|"
+        elif component_type == "connector":
+            return "| Name | Distributions[^1] |\n|------|-------------------|"
+        else:
+            return (
+                "| Name | Distributions[^1] | Traces[^2] | Metrics[^2] | Logs[^2] |\n"
+                "|------|-------------------|------------|-------------|----------|"
+            )
+
+    @staticmethod
+    def _build_component_url(component_type: str, name: str, source_repo: str, subtype: str | None) -> str:
+        """Build GitHub URL for component."""
+        repo_name = "opentelemetry-collector" if source_repo == "core" else "opentelemetry-collector-contrib"
+        repo_url = f"https://github.com/open-telemetry/{repo_name}"
+
+        if subtype:
+            component_path = f"{component_type}/{subtype}/{name}"
+        else:
+            component_path = f"{component_type}/{name}"
+
+        return f"{repo_url}/tree/main/{component_path}"
+
+    def _generate_table_row(self, component_type: str, component: dict[str, Any], subtype: str | None = None) -> str:
+        """Generate a single table row for a component."""
+        name = component.get("name", "unknown")
+        metadata = component.get("metadata", {})
+        source_repo = component.get("source_repo", "contrib")
+
+        distributions = self._get_distributions(component)
+        distributions_str = self._format_distributions(distributions)
+        stability_map = self.get_stability_by_signal(metadata)
+
+        readme_link = self._build_component_url(component_type, name, source_repo, subtype)
+        name_link = f"[{name}]({readme_link})"
+
+        # connectors don't use the stability mechanism the same way as other components
+        # so they don't mark unmaintained components
+        if component_type != "connector" and self._is_unmaintained(component):
+            name_link += " ⚠️"
+
+        # extensions have a single stability level compared to others which have per-signal levels
+        if component_type == "extension":
+            stability = stability_map.get("extension", "N/A")
+            return f"| {name_link} | {distributions_str} | {stability} |"
+        elif component_type == "connector":
+            # connectors have a completely different stability model
+            # TODO: figure out what to do for these
+            return f"| {name_link} | {distributions_str} |"
+        else:
+            traces = stability_map.get("traces", "-")
+            metrics = stability_map.get("metrics", "-")
+            logs = stability_map.get("logs", "-")
+            return f"| {name_link} | {distributions_str} | {traces} | {metrics} | {logs} |"
 
     def _generate_component_table(
         self,
@@ -149,79 +206,15 @@ class DocContentGenerator:
         Returns:
             Markdown table content
         """
-        table_content = ""
-
-        if component_type == "extension":
-            table_content += "| Name | Distributions[^1] | Stability[^2] |\n"
-            table_content += "|------|-------------------|---------------|\n"
-        elif component_type == "connector":
-            # Connectors don't have stability columns due to different stability definitions
-            table_content += "| Name | Distributions[^1] |\n"
-            table_content += "|------|-------------------|\n"
-        else:
-            table_content += "| Name | Distributions[^1] | Traces[^2] | Metrics[^2] | Logs[^2] |\n"
-            table_content += "|------|-------------------|------------|-------------|----------|\n"
+        table_lines = [self._generate_table_header(component_type)]
 
         for component in components:
-            name = component.get("name", "unknown")
-            metadata = component.get("metadata", {})
+            table_lines.append(self._generate_table_row(component_type, component, subtype))
 
-            distributions = self._get_distributions(component)
-            distributions_str = self._format_distributions(distributions)
-            stability_map = self.get_stability_by_signal(metadata)
-            source_repo = component.get("source_repo", "contrib")
+        table_content = "\n".join(table_lines) + "\n"
 
-            if source_repo == "core":
-                repo_name = "opentelemetry-collector"
-            else:
-                repo_name = "opentelemetry-collector-contrib"
-
-            repo_url = f"https://github.com/open-telemetry/{repo_name}"
-
-            # Build component path - include subtype directory for nested components
-            if subtype:
-                component_path = f"{component_type}/{subtype}/{name}"
-            else:
-                component_path = f"{component_type}/{name}"
-
-            readme_link = f"{repo_url}/tree/main/{component_path}"
-            name_link = f"[{name}]({readme_link})"
-
-            # Add unmaintained emoji if component has no active maintainers
-            # (Skip for connectors since we don't show stability columns)
-            if component_type != "connector" and self._is_unmaintained(component):
-                name_link += " ⚠️"
-
-            if component_type == "extension":
-                stability = stability_map.get("extension", "N/A")
-                table_content += f"| {name_link} | {distributions_str} | {stability} |\n"
-            elif component_type == "connector":
-                # Connectors only show name and distributions
-                table_content += f"| {name_link} | {distributions_str} |\n"
-            else:
-                traces = stability_map.get("traces", "-")
-                metrics = stability_map.get("metrics", "-")
-                logs = stability_map.get("logs", "-")
-                table_content += f"| {name_link} | {distributions_str} | {traces} | {metrics} | {logs} |\n"
-
-        if not include_footnotes:
-            return table_content
-
-        table_content += "\n"
-        stability_link = (
-            "https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/component-stability.md"
-        )
-
-        # Footnotes use multi-line indented format to match existing docs
-        table_content += "[^1]:\n"
-        table_content += "    Shows which [distributions](/docs/collector/distributions/) (core, contrib,\n"
-        table_content += "    K8s, etc.) include this component.\n"
-
-        # Only add stability footnote for non-connector components
-        if component_type != "connector":
-            table_content += "\n[^2]:\n"
-            table_content += "    For details about component stability levels, see the\n"
-            table_content += f"    [OpenTelemetry Collector component stability definitions]({stability_link}).\n"
+        if include_footnotes:
+            table_content += "\n" + self.generate_footnotes(component_type)
 
         return table_content
 

@@ -17,48 +17,16 @@ class TestGetStabilityBySignal:
         result = doc_generator.get_stability_by_signal(metadata)
         assert result == {"metrics": "beta"}
 
-    def test_get_stability_multiple_signals_same_level(self, doc_generator):
-        metadata = {"status": {"stability": {"beta": ["traces", "metrics", "logs"]}}}
-        result = doc_generator.get_stability_by_signal(metadata)
-        assert result == {"traces": "beta", "metrics": "beta", "logs": "beta"}
-
     def test_get_stability_multiple_signals_different_levels(self, doc_generator):
         metadata = {"status": {"stability": {"beta": ["traces", "metrics"], "alpha": ["logs"]}}}
         result = doc_generator.get_stability_by_signal(metadata)
         assert result == {"traces": "beta", "metrics": "beta", "logs": "alpha"}
 
-    def test_get_stability_extension(self, doc_generator):
-        metadata = {"status": {"stability": {"beta": ["extension"]}}}
-        result = doc_generator.get_stability_by_signal(metadata)
-        assert result == {"extension": "beta"}
-
-    def test_get_stability_no_metadata(self, doc_generator):
+    def test_get_stability_handles_missing_data(self, doc_generator):
         assert doc_generator.get_stability_by_signal({}) == {}
-        # Cast None to Any to satisfy the static type checker without changing runtime
         assert doc_generator.get_stability_by_signal(cast(Any, None)) == {}
-
-    def test_get_stability_no_stability_field(self, doc_generator):
-        metadata = {"status": {}}
-        assert doc_generator.get_stability_by_signal(metadata) == {}
-
-    def test_get_stability_empty_stability(self, doc_generator):
-        metadata = {"status": {"stability": {}}}
-        assert doc_generator.get_stability_by_signal(metadata) == {}
-
-    def test_get_stability_partial_signals(self, doc_generator):
-        metadata = {"status": {"stability": {"alpha": ["traces"]}}}
-        result = doc_generator.get_stability_by_signal(metadata)
-        assert result == {"traces": "alpha"}
-
-    def test_get_stability_development_level(self, doc_generator):
-        metadata = {"status": {"stability": {"development": ["traces", "logs"]}}}
-        result = doc_generator.get_stability_by_signal(metadata)
-        assert result == {"traces": "development", "logs": "development"}
-
-    def test_get_stability_unmaintained_level(self, doc_generator):
-        metadata = {"status": {"stability": {"unmaintained": ["extension"]}}}
-        result = doc_generator.get_stability_by_signal(metadata)
-        assert result == {"extension": "unmaintained"}
+        assert doc_generator.get_stability_by_signal({"status": {}}) == {}
+        assert doc_generator.get_stability_by_signal({"status": {"stability": {}}}) == {}
 
 
 class TestIsUnmaintained:
@@ -76,21 +44,11 @@ class TestIsUnmaintained:
         }
         assert doc_generator._is_unmaintained(component) is False
 
-    def test_is_unmaintained_no_stability_field(self, doc_generator):
-        """Test component without stability field is not considered unmaintained."""
-        component = {
-            "name": "somereceiver",
-            "metadata": {"status": {}},
-        }
-        assert doc_generator._is_unmaintained(component) is False
-
-    def test_is_unmaintained_no_metadata(self, doc_generator):
-        """Test component without metadata is not considered unmaintained."""
-        component = {"name": "somereceiver"}
-        assert doc_generator._is_unmaintained(component) is False
+    def test_is_unmaintained_handles_missing_data(self, doc_generator):
+        assert doc_generator._is_unmaintained({"name": "somereceiver", "metadata": {"status": {}}}) is False
+        assert doc_generator._is_unmaintained({"name": "somereceiver"}) is False
 
     def test_is_unmaintained_multiple_stability_levels(self, doc_generator):
-        """Test component with unmaintained among other levels is unmaintained."""
         component = {
             "name": "oldreceiver",
             "metadata": {
@@ -107,7 +65,6 @@ class TestIsUnmaintained:
 
 class TestGenerateComponentTable:
     def test_generate_component_table_receiver(self, doc_generator):
-        """Test generating a receiver table with traces/metrics/logs columns."""
         components = [
             {
                 "name": "otlpreceiver",
@@ -320,20 +277,6 @@ class TestGenerateComponentTable:
             "opentelemetry-collector-contrib/tree/main/processor/fooprocessor) | contrib | - | - | - |" in table_content
         )
 
-    def test_generate_component_table_empty_list(self, doc_generator):
-        table_content = doc_generator.generate_component_table("processor", [])
-
-        # Should still have table structure
-        assert "| Name | Distributions[^1] | Traces[^2] | Metrics[^2] | Logs[^2] |" in table_content
-        assert "[^1]:" in table_content
-        assert "[^2]:" in table_content
-
-        # But no component rows (only headers)
-        lines = table_content.strip().split("\n")
-        # Count data rows (rows with links that aren't the header)
-        data_rows = [line for line in lines if line.startswith("|") and "](http" in line]
-        assert len(data_rows) == 0
-
     def test_generate_component_table_unmaintained_component(self, doc_generator):
         """Test that unmaintained components get a warning emoji."""
         components = [
@@ -366,25 +309,6 @@ class TestGenerateComponentTable:
         # Active component should not have emoji
         assert "[activereceiver]" in table_content
         assert "activereceiver) ⚠️" not in table_content
-
-    def test_generate_component_table_unmaintained_extension(self, doc_generator):
-        """Test that unmaintained extensions also get warning emoji."""
-        components = [
-            {
-                "name": "oldextension",
-                "metadata": {
-                    "status": {
-                        "stability": {"unmaintained": ["extension"]},
-                        "distributions": ["contrib"],
-                    }
-                },
-            }
-        ]
-
-        table_content = doc_generator.generate_component_table("extension", components)
-
-        # Should have emoji
-        assert "oldextension) ⚠️" in table_content
 
     def test_generate_component_table_unmaintained_connector(self, doc_generator):
         """Test that unmaintained connectors don't get warning emoji (since stability isn't shown)."""

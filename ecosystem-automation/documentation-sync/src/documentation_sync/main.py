@@ -3,6 +3,7 @@
 import argparse
 import logging
 import sys
+from pathlib import Path
 
 from collector_watcher.inventory_manager import InventoryManager
 
@@ -15,12 +16,49 @@ logger = logging.getLogger(__name__)
 
 
 def configure_logging():
-    """Configure logging to output to stdout."""
     logging.basicConfig(
         level=logging.INFO,
         format="%(message)s",
         handlers=[logging.StreamHandler(sys.stdout)],
     )
+
+
+def get_page_info(table_key: str) -> tuple[str, str]:
+    """
+    Determine page name and marker ID from table key.
+
+    Extension subtypes (e.g., "extension-encoding") go in extension.md,
+    everything else uses the table_key as the filename.
+
+    Args:
+        table_key: Key from tables dict (e.g., "receiver", "extension-encoding")
+
+    Returns:
+        Tuple of (page_name, marker_id)
+    """
+    page_name = "extension" if table_key.startswith("extension-") else table_key
+    marker_id = f"{table_key}-table"
+    return page_name, marker_id
+
+
+def update_component_page(page_path: Path, marker_id: str, content: str, updater: DocMarkerUpdater) -> tuple[bool, str]:
+    """
+    Update a single component documentation page.
+
+    Args:
+        page_path: Path to the markdown file
+        marker_id: Marker identifier for the section
+        content: New content to insert
+        updater: DocMarkerUpdater instance
+
+    Returns:
+        Tuple of (success, status_message)
+    """
+    if not page_path.exists():
+        return False, "not found"
+
+    success = updater.update_file(page_path, marker_id, content)
+    return success, "updated" if success else f"marker '{marker_id}' not found"
 
 
 def main():
@@ -51,37 +89,29 @@ def main():
         logger.error(f"❌ {e}")
         sys.exit(1)
 
-    logger.info("Loading inventory...")
     inventory_manager = InventoryManager("ecosystem-registry/collector")
 
     contrib_version = get_latest_version(inventory_manager, "contrib")
     core_version = get_latest_version(inventory_manager, "core")
 
-    logger.info("Loading core inventory...")
     core_inventory = inventory_manager.load_versioned_inventory("core", core_version)
-
-    logger.info("Loading contrib inventory...")
     contrib_inventory = inventory_manager.load_versioned_inventory("contrib", contrib_version)
 
-    logger.info("Merging inventories...")
     merged_inventory = merge_inventories(core_inventory, contrib_inventory)
 
     total_components = sum(len(comps) for comps in merged_inventory["components"].values())
     logger.info(f"Loaded {total_components} total components")
 
-    logger.info("\nGenerating component tables...")
-    doc_gen = DocContentGenerator()
-    tables = doc_gen.generate_all_component_tables(merged_inventory)
+    generator = DocContentGenerator()
+    tables = generator.generate_all_component_tables(merged_inventory)
 
     logger.info(f"Generated {len(tables)} component tables")
 
     updater = DocMarkerUpdater()
-
-    # Update each component type page
     components_dir = docs_repo / "content/en/docs/collector/components"
 
     if not components_dir.exists():
-        logger.error(f"\n❌ Error: {components_dir} does not exist")
+        logger.error(f"\n❌ {components_dir} does not exist")
         logger.error("Please ensure the opentelemetry.io repository has the collector components directory")
         sys.exit(1)
 
@@ -89,25 +119,18 @@ def main():
     updated_count = 0
 
     for table_key, table_content in tables.items():
-        # Determine the file and marker for this table
-        # table_key can be "receiver", "extension", "extension-encoding", etc.
-        # Extension subtypes go in extension.md, everything else uses the table_key as filename
-        page_name = "extension" if table_key.startswith("extension-") else table_key
-        marker_id = f"{table_key}-table"
+        page_name, marker_id = get_page_info(table_key)
         page_path = components_dir / f"{page_name}.md"
 
-        if not page_path.exists():
+        success, status = update_component_page(page_path, marker_id, table_content, updater)
+
+        if status == "not found":
             logger.info(f"  ⚠️  {page_name}.md not found, skipping")
-            continue
-
-        # Update the table section
-        success = updater.update_file(page_path, marker_id, table_content)
-
-        if success:
+        elif success:
             logger.info(f"  ✓ {page_name}.md ({marker_id})")
             updated_count += 1
         else:
-            logger.info(f"  ⚠️  {page_name}.md - marker '{marker_id}' not found")
+            logger.info(f"  ⚠️  {page_name}.md - {status}")
 
     if updated_count > 0:
         logger.info(f"\n✅ Done! Updated {updated_count} page(s)")
