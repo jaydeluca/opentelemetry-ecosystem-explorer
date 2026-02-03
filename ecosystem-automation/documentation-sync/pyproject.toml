@@ -5,6 +5,7 @@ description = "Automation tool for synchronizing documentation with the OpenTele
 requires-python = ">=3.11"
 dependencies = [
     "semantic-version>=2.10.0",
+    "collector-watcher",
 ]
 
 [project.scripts]

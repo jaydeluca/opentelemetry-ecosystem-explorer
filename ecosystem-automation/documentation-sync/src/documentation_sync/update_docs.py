@@ -8,7 +8,8 @@ in a local opentelemetry.io repository using marker-based updates.
 import logging
 import sys
 
-from collector_watcher import DistributionName, InventoryManager
+from collector_watcher.inventory_manager import InventoryManager
+from collector_watcher.type_defs import DistributionName
 from semantic_version import Version
 
 logger = logging.getLogger(__name__)
@@ -17,17 +18,17 @@ logger = logging.getLogger(__name__)
 def get_latest_version(inventory_manager: InventoryManager, distribution: DistributionName) -> Version:
     versions = inventory_manager.list_versions(distribution)
     if not versions:
-        print(f"❌ No versions found for {distribution} distribution in inventory.")
+        logger.error(f"❌ No versions found for {distribution} distribution in inventory.")
         sys.exit(1)
 
     release_versions = [v for v in versions if not v.prerelease]
     if not release_versions:
-        print("❌ No release versions found for contrib distribution in inventory.")
+        logger.error(f"❌ No release versions found for {distribution} distribution in inventory.")
         sys.exit(1)
 
     version = release_versions[0]
 
-    logger.info(f"Contrib Target version: {version}")
+    logger.info(f"{distribution.capitalize()} Target version: {version}")
     return version
 
 

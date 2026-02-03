@@ -9,15 +9,6 @@ class DocContentGenerator:
     # Subtypes that should be rendered as separate tables
     EXTENSION_SUBTYPES = ["encoding", "observer", "storage"]
 
-    def __init__(self, version: str | None = None):
-        """
-        Initialize the documentation generator.
-
-        Args:
-            version: Version string to include in generated content (e.g., "v0.138.0")
-        """
-        self.version = version
-
     @staticmethod
     def get_stability_by_signal(metadata: dict[str, Any]) -> dict[str, str]:
         """
@@ -48,7 +39,8 @@ class DocContentGenerator:
 
         return signal_stability
 
-    def _get_distributions(self, component: dict[str, Any]) -> list[str]:
+    @staticmethod
+    def _get_distributions(component: dict[str, Any]) -> list[str]:
         """
         Get the list of distributions for a component.
 
@@ -70,7 +62,8 @@ class DocContentGenerator:
 
         return sorted(distributions)
 
-    def _format_distributions(self, distributions: list[str]) -> str:
+    @staticmethod
+    def _format_distributions(distributions: list[str]) -> str:
         """
         Format distribution list for display in table.
 
@@ -94,7 +87,8 @@ class DocContentGenerator:
 
         return ", ".join(capitalized)
 
-    def _is_unmaintained(self, component: dict[str, Any]) -> bool:
+    @staticmethod
+    def _is_unmaintained(component: dict[str, Any]) -> bool:
         """
         Check if a component is unmaintained.
 
@@ -117,7 +111,8 @@ class DocContentGenerator:
         # Check if "unmaintained" is one of the stability levels
         return "unmaintained" in stability
 
-    def _filter_by_subtype(self, components: list[dict[str, Any]], subtype: str | None) -> list[dict[str, Any]]:
+    @staticmethod
+    def _filter_by_subtype(components: list[dict[str, Any]], subtype: str | None) -> list[dict[str, Any]]:
         """
         Filter components by subtype.
 
@@ -209,7 +204,6 @@ class DocContentGenerator:
                 logs = stability_map.get("logs", "-")
                 table_content += f"| {name_link} | {distributions_str} | {traces} | {metrics} | {logs} |\n"
 
-        # Only include footnotes if requested (avoids duplicates on pages with multiple tables)
         if not include_footnotes:
             return table_content
 
@@ -257,13 +251,13 @@ class DocContentGenerator:
             component_type, sorted_components, subtype=subtype, include_footnotes=include_footnotes
         )
 
-    def generate_footnotes(self, component_type: str, components: list[dict[str, Any]]) -> str:
+    @staticmethod
+    def generate_footnotes(component_type: str) -> str:
         """
         Generate footnotes section for a component type.
 
         Args:
             component_type: Type of component (receiver, processor, etc.)
-            components: List of components (unused, kept for API compatibility)
 
         Returns:
             Markdown footnotes content
@@ -330,6 +324,6 @@ class DocContentGenerator:
                 )
 
         # Generate shared footnotes for extension page (at the bottom)
-        tables["extension-footnotes"] = self.generate_footnotes("extension", extension_list)
+        tables["extension-footnotes"] = self.generate_footnotes("extension")
 
         return tables

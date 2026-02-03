@@ -3,8 +3,8 @@
 from pathlib import Path
 
 import pytest
-from collector_watcher import InventoryManager
-from documentation_sync.update_docs import get_best_available_version, merge_inventories
+from collector_watcher.inventory_manager import InventoryManager
+from documentation_sync.update_docs import get_latest_version, merge_inventories
 from semantic_version import Version
 
 
@@ -14,43 +14,32 @@ def fixtures_dir():
     return Path(__file__).parent / "fixtures"
 
 
-class TestGetBestAvailableVersion:
-    def test_exact_version_exists(self, fixtures_dir):
+class TestGetLatestVersion:
+    def test_get_latest_release_version(self, fixtures_dir):
+        """Test getting the latest non-prerelease version."""
         inv_mgr = InventoryManager(str(fixtures_dir))
-        target_version = Version("0.140.0")
 
-        result = get_best_available_version(inv_mgr, "core", target_version)
+        result = get_latest_version(inv_mgr, "core")
 
-        assert result == target_version
-
-    def test_fallback_to_previous_version(self, fixtures_dir):
-        """Test fallback when target version doesn't exist."""
-        inv_mgr = InventoryManager(str(fixtures_dir))
-        target_version = Version("0.140.1")  # Doesn't exist for core
-
-        result = get_best_available_version(inv_mgr, "core", target_version)
-
-        # Should fall back to v0.140.0 (latest available before target)
+        # Should return latest non-snapshot version
         assert result == Version("0.140.0")
 
     def test_no_versions_available(self, fixtures_dir):
         """Test when no versions are available."""
         inv_mgr = InventoryManager(str(fixtures_dir))
-        target_version = Version("0.140.0")
 
         # Try to get version for a distribution that doesn't exist
-        with pytest.raises(ValueError, match="No versions found"):
-            get_best_available_version(inv_mgr, "nonexistent", target_version)
+        with pytest.raises(SystemExit):
+            get_latest_version(inv_mgr, "nonexistent")  # type: ignore
 
-    def test_fallback_to_oldest_when_all_newer(self, fixtures_dir):
-        """Test fallback to the oldest version when all versions are newer than target."""
+    def test_skips_prerelease_versions(self, fixtures_dir):
+        """Test that prerelease/snapshot versions are skipped."""
         inv_mgr = InventoryManager(str(fixtures_dir))
-        target_version = Version("0.138.0")  # Older than available
 
-        result = get_best_available_version(inv_mgr, "core", target_version)
+        result = get_latest_version(inv_mgr, "contrib")
 
-        # Should return the oldest available version
-        assert result == Version("0.139.0")
+        # Should skip any snapshot versions and return latest release
+        assert not result.prerelease
 
 
 class TestMergeInventories:

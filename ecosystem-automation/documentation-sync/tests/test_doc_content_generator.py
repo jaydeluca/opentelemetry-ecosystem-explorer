@@ -1,14 +1,14 @@
 """Tests for documentation generator."""
 
-import pytest
 from typing import Any, cast
 
+import pytest
 from documentation_sync.doc_content_generator import DocContentGenerator
 
 
 @pytest.fixture
 def doc_generator():
-    return DocContentGenerator(version="v0.138.0")
+    return DocContentGenerator()
 
 
 class TestGetStabilityBySignal:
@@ -211,14 +211,12 @@ class TestGenerateComponentTable:
         # Should have component rows with only name and distributions
         assert (
             "| [countconnector](https://github.com/open-telemetry/"
-            "opentelemetry-collector-contrib/tree/main/connector/countconnector) | contrib |"
-            in table_content
+            "opentelemetry-collector-contrib/tree/main/connector/countconnector) | contrib |" in table_content
         )
         assert (
             "| [spanmetricsconnector]("
             "https://github.com/open-telemetry/"
-            "opentelemetry-collector-contrib/tree/main/connector/spanmetricsconnector) | contrib |"
-            in table_content
+            "opentelemetry-collector-contrib/tree/main/connector/spanmetricsconnector) | contrib |" in table_content
         )
 
     def test_generate_component_table_with_distributions(self, doc_generator):
@@ -256,20 +254,17 @@ class TestGenerateComponentTable:
         assert (
             "[otlpreceiver]("
             "https://github.com/open-telemetry/"
-            "opentelemetry-collector/tree/main/receiver/otlpreceiver) | core |"
-            in table_content
+            "opentelemetry-collector/tree/main/receiver/otlpreceiver) | core |" in table_content
         )
         assert (
             "[jaegerreceiver]("
             "https://github.com/open-telemetry/"
-            "opentelemetry-collector-contrib/tree/main/receiver/jaegerreceiver) | contrib |"
-            in table_content
+            "opentelemetry-collector-contrib/tree/main/receiver/jaegerreceiver) | contrib |" in table_content
         )
         assert (
             "[zipkinreceiver]("
             "https://github.com/open-telemetry/"
-            "opentelemetry-collector/tree/main/receiver/zipkinreceiver) | contrib, core |"
-            in table_content
+            "opentelemetry-collector/tree/main/receiver/zipkinreceiver) | contrib, core |" in table_content
         )
 
     def test_format_distributions_capitalizes_k8s(self, doc_generator):
@@ -322,8 +317,7 @@ class TestGenerateComponentTable:
         assert (
             "| [fooprocessor]("
             "https://github.com/open-telemetry/"
-            "opentelemetry-collector-contrib/tree/main/processor/fooprocessor) | contrib | - | - | - |"
-            in table_content
+            "opentelemetry-collector-contrib/tree/main/processor/fooprocessor) | contrib | - | - | - |" in table_content
         )
 
     def test_generate_component_table_empty_list(self, doc_generator):
@@ -563,8 +557,7 @@ class TestExtensionSubtypes:
         # Should have nested path: extension/encoding/otlpencodingextension
         assert (
             "https://github.com/open-telemetry/"
-            "opentelemetry-collector-contrib/tree/main/extension/encoding/otlpencodingextension"
-            in table
+            "opentelemetry-collector-contrib/tree/main/extension/encoding/otlpencodingextension" in table
         )
 
     def test_generate_component_table_without_subtype_regular_path(self, doc_generator):
@@ -581,8 +574,7 @@ class TestExtensionSubtypes:
         # Should have regular path: extension/healthcheckextension
         assert (
             "https://github.com/open-telemetry/"
-            "opentelemetry-collector-contrib/tree/main/extension/healthcheckextension"
-            in table
+            "opentelemetry-collector-contrib/tree/main/extension/healthcheckextension" in table
         )
         # Should NOT have nested path
         assert "/extension/encoding/" not in table
@@ -660,9 +652,7 @@ class TestExtensionSubtypes:
 
         # Encoding table should have otlpencodingextension with nested path
         assert "otlpencodingextension" in tables["extension-encoding"]
-        assert (
-            "/extension/encoding/otlpencodingextension" in tables["extension-encoding"]
-        )
+        assert "/extension/encoding/otlpencodingextension" in tables["extension-encoding"]
 
         # Observer table should have hostobserver
         assert "hostobserver" in tables["extension-observer"]
