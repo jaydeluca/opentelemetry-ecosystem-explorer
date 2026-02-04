@@ -5,10 +5,7 @@ from explorer_db_builder.content_hashing import content_hash, normalize_for_hash
 
 
 class TestNormalizeForHashing:
-    """Tests for normalize_for_hashing function."""
-
     def test_normalize_none(self):
-        """None values are preserved."""
         assert normalize_for_hashing(None) is None
 
     def test_normalize_primitives(self):
@@ -69,12 +66,10 @@ class TestNormalizeForHashing:
             normalize_for_hashing({"key": lambda x: x})
 
         with pytest.raises(TypeError, match="not JSON serializable"):
-            normalize_for_hashing([1, 2, set([3, 4])])
+            normalize_for_hashing([1, 2, {3, 4}])
 
 
 class TestContentHash:
-    """Tests for content_hash function."""
-
     def test_hash_simple_dict(self):
         """Simple dictionaries produce consistent hashes."""
         data = {"name": "test", "value": 42}

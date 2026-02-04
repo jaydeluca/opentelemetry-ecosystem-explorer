@@ -13,21 +13,18 @@ from semantic_version import Version
 
 @pytest.fixture
 def mock_inventory_manager():
-    """Provide a mock InventoryManager."""
     mock = MagicMock()
     return mock
 
 
 @pytest.fixture
 def mock_db_writer():
-    """Provide a mock DatabaseWriter."""
     mock = MagicMock()
+    mock.get_stats.return_value = {"files_written": 10, "total_bytes": 1024}
     return mock
 
 
 class TestGetReleaseVersions:
-    """Tests for get_release_versions function."""
-
     def test_get_release_versions_success(self, mock_inventory_manager):
         """Returns release versions when available."""
         versions = [
@@ -81,8 +78,6 @@ class TestGetReleaseVersions:
 
 
 class TestProcessVersion:
-    """Tests for process_version function."""
-
     def test_process_version_success(self, mock_inventory_manager, mock_db_writer):
         """Successfully processes a version with valid data."""
         version = Version("2.0.0")
@@ -135,8 +130,6 @@ class TestProcessVersion:
 
 
 class TestRunBuilder:
-    """Tests for run_builder function."""
-
     def test_run_builder_success(self, mock_inventory_manager, mock_db_writer):
         """Returns 0 on successful execution."""
         versions = [Version("2.0.0"), Version("1.0.0")]
@@ -209,55 +202,101 @@ class TestRunBuilder:
         assert mock_db_writer.write_libraries.call_count == 3
         assert mock_db_writer.write_version_index.call_count == 3
 
-    @patch("explorer_db_builder.main.InventoryManager")
-    @patch("explorer_db_builder.main.DatabaseWriter")
-    def test_run_builder_with_defaults(self, mock_writer_class, mock_manager_class):
-        """Creates default instances when not provided."""
-        mock_manager = MagicMock()
-        mock_writer = MagicMock()
-
-        mock_manager_class.return_value = mock_manager
-        mock_writer_class.return_value = mock_writer
-
+    def test_run_builder_with_clean_false(self, mock_inventory_manager, mock_db_writer):
+        """Clean is not called when clean=False."""
         versions = [Version("1.0.0")]
         inventory_data = {"libraries": [{"name": "lib1"}]}
 
-        mock_manager.list_versions.return_value = versions
-        mock_manager.load_versioned_inventory.return_value = inventory_data
-        mock_writer.write_libraries.return_value = {"lib1": "hash1"}
+        mock_inventory_manager.list_versions.return_value = versions
+        mock_inventory_manager.load_versioned_inventory.return_value = inventory_data
+        mock_db_writer.write_libraries.return_value = {"lib1": "hash1"}
 
-        exit_code = run_builder()
+        exit_code = run_builder(mock_inventory_manager, mock_db_writer, clean=False)
 
         assert exit_code == 0
-        mock_manager_class.assert_called_once()
-        mock_writer_class.assert_called_once()
+        mock_db_writer.clean.assert_not_called()
+
+    def test_run_builder_with_clean_true(self, mock_inventory_manager, mock_db_writer):
+        """Clean is called when clean=True."""
+        versions = [Version("1.0.0")]
+        inventory_data = {"libraries": [{"name": "lib1"}]}
+
+        mock_inventory_manager.list_versions.return_value = versions
+        mock_inventory_manager.load_versioned_inventory.return_value = inventory_data
+        mock_db_writer.write_libraries.return_value = {"lib1": "hash1"}
+
+        exit_code = run_builder(mock_inventory_manager, mock_db_writer, clean=True)
+
+        assert exit_code == 0
+        mock_db_writer.clean.assert_called_once()
+
+    def test_run_builder_clean_before_processing(self, mock_inventory_manager, mock_db_writer):
+        """Clean is called before processing versions."""
+        versions = [Version("1.0.0")]
+        inventory_data = {"libraries": [{"name": "lib1"}]}
+
+        mock_inventory_manager.list_versions.return_value = versions
+        mock_inventory_manager.load_versioned_inventory.return_value = inventory_data
+        mock_db_writer.write_libraries.return_value = {"lib1": "hash1"}
+
+        call_order = []
+        mock_db_writer.clean.side_effect = lambda: call_order.append("clean")
+        mock_inventory_manager.list_versions.side_effect = lambda: (call_order.append("list_versions"), versions)[1]
+
+        run_builder(mock_inventory_manager, mock_db_writer, clean=True)
+
+        assert call_order[0] == "clean"
+        assert call_order[1] == "list_versions"
 
 
 class TestMain:
-    """Tests for main function."""
-
     @patch("explorer_db_builder.main.run_builder")
     @patch("explorer_db_builder.main.sys.exit")
-    def test_main_success(self, mock_exit, mock_run_builder):
+    @patch("explorer_db_builder.main.argparse.ArgumentParser.parse_args")
+    def test_main_success(self, mock_parse_args, mock_exit, mock_run_builder):
         """Main exits with code from run_builder."""
         from explorer_db_builder.main import main
 
+        mock_args = MagicMock()
+        mock_args.clean = False
+        mock_parse_args.return_value = mock_args
         mock_run_builder.return_value = 0
 
         main()
 
-        mock_run_builder.assert_called_once()
+        mock_run_builder.assert_called_once_with(clean=False)
         mock_exit.assert_called_once_with(0)
 
     @patch("explorer_db_builder.main.run_builder")
     @patch("explorer_db_builder.main.sys.exit")
-    def test_main_failure(self, mock_exit, mock_run_builder):
+    @patch("explorer_db_builder.main.argparse.ArgumentParser.parse_args")
+    def test_main_failure(self, mock_parse_args, mock_exit, mock_run_builder):
         """Main exits with error code on failure."""
         from explorer_db_builder.main import main
 
+        mock_args = MagicMock()
+        mock_args.clean = False
+        mock_parse_args.return_value = mock_args
         mock_run_builder.return_value = 1
 
         main()
 
-        mock_run_builder.assert_called_once()
+        mock_run_builder.assert_called_once_with(clean=False)
         mock_exit.assert_called_once_with(1)
+
+    @patch("explorer_db_builder.main.run_builder")
+    @patch("explorer_db_builder.main.sys.exit")
+    @patch("explorer_db_builder.main.argparse.ArgumentParser.parse_args")
+    def test_main_with_clean_flag(self, mock_parse_args, mock_exit, mock_run_builder):
+        """Main passes clean flag to run_builder."""
+        from explorer_db_builder.main import main
+
+        mock_args = MagicMock()
+        mock_args.clean = True
+        mock_parse_args.return_value = mock_args
+        mock_run_builder.return_value = 0
+
+        main()
+
+        mock_run_builder.assert_called_once_with(clean=True)
+        mock_exit.assert_called_once_with(0)

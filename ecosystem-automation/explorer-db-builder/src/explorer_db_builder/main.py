@@ -1,5 +1,6 @@
 """Main entry point for the Explorer Database Builder."""
 
+import argparse
 import logging
 import sys
 from typing import Optional
@@ -86,12 +87,14 @@ def process_version(
 def run_builder(
     inventory_manager: Optional[InventoryManager] = None,
     db_writer: Optional[DatabaseWriter] = None,
+    clean: bool = False,
 ) -> int:
     """Run the database builder process.
 
     Args:
         inventory_manager: Optional inventory manager (for testing)
         db_writer: Optional database writer (for testing)
+        clean: If True, clean the database directory before building
 
     Returns:
         Exit code (0 for success, 1 for failure)
@@ -99,6 +102,9 @@ def run_builder(
     try:
         inventory_manager = inventory_manager or InventoryManager()
         db_writer = db_writer or DatabaseWriter()
+
+        if clean:
+            db_writer.clean()
 
         versions = get_release_versions(inventory_manager)
         logger.info(f"Processing {len(versions)} release versions")
@@ -108,6 +114,14 @@ def run_builder(
 
         db_writer.write_version_list(versions)
 
+        stats = db_writer.get_stats()
+        total_mb = stats["total_bytes"] / (1024 * 1024)
+
+        logger.info("")
+        logger.info("Database Statistics:")
+        logger.info(f"  Files written: {stats['files_written']}")
+        logger.info(f"  Total size: {stats['total_bytes']:,} bytes ({total_mb:.2f} MB)")
+        logger.info("")
         logger.info("✓ Database build completed successfully")
         return 0
 
@@ -127,6 +141,18 @@ def run_builder(
 
 def main() -> None:
     """Main entry point for the CLI."""
+    parser = argparse.ArgumentParser(
+        description="Build content-addressed database from registry data",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "--clean",
+        action="store_true",
+        help="Clean the database directory before building",
+    )
+
+    args = parser.parse_args()
+
     configure_logging()
 
     logger.info("=" * 60)
@@ -134,7 +160,7 @@ def main() -> None:
     logger.info("=" * 60)
     logger.info("")
 
-    exit_code = run_builder()
+    exit_code = run_builder(clean=args.clean)
     sys.exit(exit_code)
 
 

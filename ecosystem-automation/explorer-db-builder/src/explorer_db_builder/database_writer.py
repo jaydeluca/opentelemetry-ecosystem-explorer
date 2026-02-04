@@ -2,6 +2,7 @@
 
 import json
 import logging
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -28,6 +29,8 @@ class DatabaseWriter:
                          Defaults to the ecosystem-explorer public data directory.
         """
         self.database_dir = Path(database_dir)
+        self.files_written = 0
+        self.total_bytes = 0
 
     def _get_file_path(self, library_name: str, library_hash: str) -> Path:
         """Get the file path for a library with the given name and hash.
@@ -84,8 +87,12 @@ class DatabaseWriter:
                 if file_path.exists():
                     logger.debug(f"Library '{library_name}' with hash {library_hash} already exists, skipping write")
                 else:
+                    content = json.dumps(library, indent=2, sort_keys=True)
                     with open(file_path, "w", encoding="utf-8") as f:
-                        json.dump(library, f, indent=2, sort_keys=True)
+                        f.write(content)
+                    file_size = len(content.encode("utf-8"))
+                    self.files_written += 1
+                    self.total_bytes += file_size
                     logger.debug(f"Wrote library '{library_name}' with hash {library_hash}")
 
                 library_map[library_name] = library_hash
@@ -126,8 +133,12 @@ class DatabaseWriter:
         version_data = {"version": str(version), "instrumentations": library_map}
 
         try:
+            content = json.dumps(version_data, indent=2, sort_keys=True)
             with open(version_file, "w", encoding="utf-8") as f:
-                json.dump(version_data, f, indent=2, sort_keys=True)
+                f.write(content)
+            file_size = len(content.encode("utf-8"))
+            self.files_written += 1
+            self.total_bytes += file_size
             logger.info(f"Wrote version index for {version} with {len(library_map)} instrumentations")
         except OSError as e:
             logger.error(f"Failed to write version index for {version}: {e}")
@@ -161,9 +172,36 @@ class DatabaseWriter:
         final_data = {"versions": version_list_data}
 
         try:
+            content = json.dumps(final_data, indent=2, sort_keys=True)
             with open(version_list_file, "w", encoding="utf-8") as f:
-                json.dump(final_data, f, indent=2, sort_keys=True)
+                f.write(content)
+            file_size = len(content.encode("utf-8"))
+            self.files_written += 1
+            self.total_bytes += file_size
             logger.info(f"Wrote version list with {len(versions)} versions (latest: {versions[0]})")
         except OSError as e:
             logger.error(f"Failed to write version list: {e}")
             raise
+
+    def get_stats(self) -> dict[str, Any]:
+        """Get statistics about files written during this session.
+
+        Returns:
+            Dictionary with 'files_written' (int) and 'total_bytes' (int)
+        """
+        return {"files_written": self.files_written, "total_bytes": self.total_bytes}
+
+    def clean(self) -> None:
+        """Remove all files in the database directory.
+
+        This completely removes the database directory and recreates it empty.
+
+        Raises:
+            OSError: If directory removal or creation fails
+        """
+        if self.database_dir.exists():
+            logger.info(f"Cleaning database directory: {self.database_dir}")
+            shutil.rmtree(self.database_dir)
+            logger.info("Database directory cleaned")
+
+        self.database_dir.mkdir(parents=True, exist_ok=True)

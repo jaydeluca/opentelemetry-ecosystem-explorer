@@ -15,33 +15,21 @@ ecosystem-explorer/
   public/
     data/
       javaagent/
-        index.json            # Lightweight index for javaagent (browsing/search)
-        versions.json         # List of available javaagent versions
+        index.json                  # Lightweight index for javaagent (browsing/search)
+        versions-index.json         # List of available javaagent versions
         versions/
-          2.24.0.json        # Version manifest: {component-id: content-hash}
-          2.23.0.json
+          2.24.0-index.json         # Version manifest: {component-id: content-hash}
+          2.23.0-index.json
           ...
-        components/
-          akka-http-10.0-737fb17f9652.json
-          aws-sdk-1.11-48c8b39bee75.json
+        instrumentations/
+          akka-http-10.0/
+            akka-http-10.0-737fb17f9652.json
+          aws-sdk-1.11/
+            aws-sdk-1.11-48c8b39bee75.json
           ...
         markdown/
-          aws-sdk-1.11-48c8b39bee75.md    # Content-addressed READMEs
-          ...
-
-      collector/
-        index.json            # Lightweight index for collector
-        versions.json         # List of available collector versions
-        versions/
-          0.95.0.json
-          0.94.0.json
-          ...
-        components/
-          otlp-abc123def456.json
-          prometheus-789ghi012jkl.json
-          ...
-        markdown/
-          otlp-abc123def456.md
+          aws-sdk-1.11/
+            aws-sdk-1.11-48c8b39bee75.md    # Content-addressed READMEs
           ...
 ```
 
@@ -50,7 +38,11 @@ ecosystem-explorer/
 From the repository root:
 
 ```bash
+# Build the database (incremental - reuses existing content-addressed files)
 uv run explorer-db-builder
+
+# Clean and rebuild the database from scratch
+uv run explorer-db-builder --clean
 ```
 
 ## Development

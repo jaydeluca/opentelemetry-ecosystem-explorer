@@ -10,19 +10,16 @@ from semantic_version import Version
 
 @pytest.fixture
 def temp_db_dir(tmp_path):
-    """Provide a temporary database directory."""
     return tmp_path / "test_db"
 
 
 @pytest.fixture
 def db_writer(temp_db_dir):
-    """Provide a DatabaseWriter instance with temp directory."""
     return DatabaseWriter(database_dir=str(temp_db_dir))
 
 
 @pytest.fixture
 def sample_libraries():
-    """Provide sample library data for testing."""
     return [
         {
             "name": "akka-http",
@@ -38,22 +35,22 @@ def sample_libraries():
 
 
 class TestDatabaseWriterInit:
-    """Tests for DatabaseWriter initialization."""
-
     def test_init_with_default_path(self):
         """Default path is set correctly."""
         writer = DatabaseWriter()
         assert writer.database_dir == Path("ecosystem-explorer/public/data/javaagent")
+        assert writer.files_written == 0
+        assert writer.total_bytes == 0
 
     def test_init_with_custom_path(self, temp_db_dir):
         """Custom path is set correctly."""
         writer = DatabaseWriter(database_dir=str(temp_db_dir))
         assert writer.database_dir == temp_db_dir
+        assert writer.files_written == 0
+        assert writer.total_bytes == 0
 
 
 class TestGetFilePath:
-    """Tests for _get_file_path method."""
-
     def test_get_file_path_creates_directory(self, db_writer, temp_db_dir):
         """Directory structure is created if it doesn't exist."""
         db_writer._get_file_path("test-lib", "abc123")
@@ -76,8 +73,6 @@ class TestGetFilePath:
 
 
 class TestWriteLibraries:
-    """Tests for write_libraries method."""
-
     def test_write_libraries_success(self, db_writer, sample_libraries, temp_db_dir):
         """Libraries are written successfully and map is returned."""
         library_map = db_writer.write_libraries(sample_libraries)
@@ -205,8 +200,6 @@ class TestWriteLibraries:
 
 
 class TestWriteVersionIndex:
-    """Tests for write_version_index method."""
-
     def test_write_version_index_success(self, db_writer, temp_db_dir):
         """Version index is written successfully."""
         version = Version("2.1.0")
@@ -256,8 +249,6 @@ class TestWriteVersionIndex:
 
 
 class TestWriteVersionList:
-    """Tests for write_version_list method."""
-
     def test_write_version_list_success(self, db_writer, temp_db_dir):
         """Version list is written successfully."""
         versions = [Version("2.0.0"), Version("1.5.0"), Version("1.0.0")]
@@ -309,23 +300,136 @@ class TestWriteVersionList:
         assert temp_db_dir.is_dir()
 
 
-class TestIntegration:
-    """Integration tests for complete workflow."""
+class TestGetStats:
+    def test_get_stats_initial_state(self, db_writer):
+        """Initial stats show zero files and bytes."""
+        stats = db_writer.get_stats()
+        assert stats["files_written"] == 0
+        assert stats["total_bytes"] == 0
 
-    def test_full_workflow(self, db_writer, sample_libraries, temp_db_dir):
-        """Complete workflow from libraries to version list."""
+    def test_get_stats_after_writing_libraries(self, db_writer, sample_libraries):
+        """Stats are updated after writing libraries."""
+        db_writer.write_libraries(sample_libraries)
+        stats = db_writer.get_stats()
+
+        assert stats["files_written"] == 2
+        assert stats["total_bytes"] > 0
+
+    def test_get_stats_after_version_index(self, db_writer):
+        """Stats include version index file."""
+        library_map = {"lib1": "abc123"}
+        db_writer.write_version_index(Version("1.0.0"), library_map)
+
+        stats = db_writer.get_stats()
+        assert stats["files_written"] == 1
+        assert stats["total_bytes"] > 0
+
+    def test_get_stats_after_version_list(self, db_writer):
+        """Stats include version list file."""
+        versions = [Version("1.0.0")]
+        db_writer.write_version_list(versions)
+
+        stats = db_writer.get_stats()
+        assert stats["files_written"] == 1
+        assert stats["total_bytes"] > 0
+
+    def test_get_stats_cumulative(self, db_writer, sample_libraries):
+        """Stats accumulate across multiple operations."""
         # Write libraries
-        library_map = db_writer.write_libraries(sample_libraries)
+        db_writer.write_libraries(sample_libraries)
+        after_libs = db_writer.get_stats()
 
         # Write version index
+        library_map = {"lib1": "abc123"}
+        db_writer.write_version_index(Version("1.0.0"), library_map)
+        after_version = db_writer.get_stats()
+
+        # Write version list
+        db_writer.write_version_list([Version("1.0.0")])
+        final = db_writer.get_stats()
+
+        assert after_version["files_written"] > after_libs["files_written"]
+        assert final["files_written"] > after_version["files_written"]
+        assert after_version["total_bytes"] > after_libs["total_bytes"]
+        assert final["total_bytes"] > after_version["total_bytes"]
+
+    def test_get_stats_skips_existing_files(self, db_writer):
+        """Stats only count newly written files, not skipped ones."""
+        libraries = [{"name": "test-lib", "version": "1.0"}]
+
+        # Write first time
+        db_writer.write_libraries(libraries)
+        first_stats = db_writer.get_stats()
+
+        # Write second time with same content (should be skipped)
+        db_writer.write_libraries(libraries)
+        second_stats = db_writer.get_stats()
+
+        # Stats should remain the same since file was skipped
+        assert second_stats["files_written"] == first_stats["files_written"]
+        assert second_stats["total_bytes"] == first_stats["total_bytes"]
+
+
+class TestClean:
+    def test_clean_removes_existing_directory(self, db_writer, temp_db_dir):
+        """Clean removes existing database directory."""
+        # Create some files in the database directory
+        test_dir = temp_db_dir / "test_subdir"
+        test_dir.mkdir(parents=True)
+        test_file = test_dir / "test_file.json"
+        test_file.write_text("test content")
+
+        assert test_dir.exists()
+        assert test_file.exists()
+
+        db_writer.clean()
+
+        # Directory should be recreated but empty
+        assert temp_db_dir.exists()
+        assert not test_dir.exists()
+        assert not test_file.exists()
+
+    def test_clean_creates_directory_if_not_exists(self, db_writer, temp_db_dir):
+        """Clean creates database directory if it doesn't exist."""
+        assert not temp_db_dir.exists()
+
+        db_writer.clean()
+
+        assert temp_db_dir.exists()
+        assert temp_db_dir.is_dir()
+
+    def test_clean_with_nested_structure(self, db_writer, temp_db_dir):
+        """Clean removes complex nested directory structure."""
+        # Create a complex nested structure
+        (temp_db_dir / "instrumentations" / "lib1").mkdir(parents=True)
+        (temp_db_dir / "instrumentations" / "lib2").mkdir(parents=True)
+        (temp_db_dir / "versions").mkdir(parents=True)
+
+        (temp_db_dir / "instrumentations" / "lib1" / "file1.json").write_text("{}")
+        (temp_db_dir / "instrumentations" / "lib2" / "file2.json").write_text("{}")
+        (temp_db_dir / "versions" / "index.json").write_text("{}")
+        (temp_db_dir / "root.json").write_text("{}")
+
+        db_writer.clean()
+
+        # Root directory should exist but be empty
+        assert temp_db_dir.exists()
+        assert not (temp_db_dir / "instrumentations").exists()
+        assert not (temp_db_dir / "versions").exists()
+        assert not (temp_db_dir / "root.json").exists()
+
+
+class TestIntegration:
+    def test_full_workflow(self, db_writer, sample_libraries, temp_db_dir):
+        """Complete workflow from libraries to version list."""
+        library_map = db_writer.write_libraries(sample_libraries)
+
         version = Version("2.0.0")
         db_writer.write_version_index(version, library_map)
 
-        # Write version list
         versions = [version]
         db_writer.write_version_list(versions)
 
-        # Verify all files exist
         assert (temp_db_dir / "versions-index.json").exists()
         assert (temp_db_dir / "versions" / "2.0.0-index.json").exists()
 
