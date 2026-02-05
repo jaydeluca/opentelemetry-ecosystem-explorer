@@ -124,7 +124,10 @@ jobs:
         continue-on-error: false
 
       - name: Format and fix documentation
-        run: npm run test-and-fix
+        run: |
+          npm install
+          npm run check:links
+          npm run fix:format
         working-directory: opentelemetry.io
         continue-on-error: true
 
