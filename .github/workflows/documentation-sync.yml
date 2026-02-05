@@ -15,6 +15,7 @@ on:
 permissions:
   contents: read
   pull-requests: write
+  issues: write
 
 jobs:
   update-docs:
@@ -62,13 +63,14 @@ jobs:
         with:
           repository: ${{ steps.target_repo.outputs.repo_owner }}/opentelemetry.io
           path: opentelemetry.io
-          token: ${{ secrets.PAT_TOKEN || github.token }}
+          token: ${{ github.token }}
           persist-credentials: false
 
       - name: Sync fork with upstream
         if: steps.target_repo.outputs.is_fork == 'true'
         env:
-          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+          # Use otelbot token for primary repo, GITHUB_TOKEN for forks
+          GH_TOKEN: ${{ steps.repo_check.outputs.is_primary == 'true' && steps.otelbot-token.outputs.token || secrets.GITHUB_TOKEN }}
           FORK_OWNER: ${{ secrets.DOCS_REPO_OWNER || github.repository_owner }}
         run: |
           cd opentelemetry.io
@@ -211,18 +213,12 @@ jobs:
       - name: Push and create PR
         if: steps.check_changes.outputs.has_changes == 'true'
         env:
-          # Use otelbot token for primary repo, PAT_TOKEN for forks
-          GH_TOKEN: ${{ steps.repo_check.outputs.is_primary == 'true' && steps.otelbot-token.outputs.token || secrets.PAT_TOKEN }}
+          # Use otelbot token for primary repo, GITHUB_TOKEN for forks
+          GH_TOKEN: ${{ steps.repo_check.outputs.is_primary == 'true' && steps.otelbot-token.outputs.token || secrets.GITHUB_TOKEN }}
           FORK_OWNER: ${{ secrets.DOCS_REPO_OWNER || github.repository_owner }}
           TARGET_OWNER: ${{ inputs.target_repo_owner || 'open-telemetry' }}
         run: |
           cd opentelemetry.io
-
-          # Verify token is set
-          if [ -z "${GH_TOKEN}" ]; then
-            echo "ERROR: GH_TOKEN is not set. Please configure PAT_TOKEN secret."
-            exit 1
-          fi
 
           git remote remove fork 2>/dev/null || true
           git remote add fork https://x-access-token:${GH_TOKEN}@github.com/${FORK_OWNER}/opentelemetry.io.git
