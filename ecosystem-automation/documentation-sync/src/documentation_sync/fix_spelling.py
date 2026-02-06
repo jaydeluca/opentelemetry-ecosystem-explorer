@@ -79,7 +79,7 @@ def update_cspell_list(file_path: Path, new_words: set[str]) -> bool:
     Returns:
         True if file was modified
     """
-    with open(file_path) as f:
+    with open(file_path, encoding="utf-8") as f:
         content = f.read()
 
     # Match heading section (between --- delimiters)
@@ -117,7 +117,7 @@ def update_cspell_list(file_path: Path, new_words: set[str]) -> bool:
     # Reconstruct the content
     new_content = f"---\n{updated_frontmatter}\n---\n" + content[existing_section_end:]
 
-    with open(file_path, "w") as f:
+    with open(file_path, "w", encoding="utf-8") as f:
         f.write(new_content)
 
     return True

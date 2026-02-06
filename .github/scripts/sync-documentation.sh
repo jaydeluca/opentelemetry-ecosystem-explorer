@@ -188,7 +188,18 @@ gh pr create \
   2>&1 | tee pr-output.txt || {
     if grep -q "already exists" pr-output.txt; then
       echo "PR already exists, updating..."
-      gh pr edit "${PR_HEAD}" \
+      PR_NUMBER="$(gh pr list \
+        --repo "${DESTINATION_REPO}/opentelemetry.io" \
+        --head "${PR_HEAD}" \
+        --state open \
+        --json number \
+        --jq '.[0].number')"
+      if [ -z "$PR_NUMBER" ]; then
+        echo "Failed to find existing PR for head ${PR_HEAD}"
+        cat pr-output.txt
+        exit 1
+      fi
+      gh pr edit "$PR_NUMBER" \
         --repo "${DESTINATION_REPO}/opentelemetry.io" \
         --title "Update Collector component tables for ${VERSION}" \
         --body "$PR_BODY"
