@@ -87,7 +87,7 @@ def update_cspell_list(file_path: Path, new_words: set[str]) -> bool:
     match = re.match(frontmatter_pattern, content, re.DOTALL)
 
     if not match:
-        print(f"  ⚠️  No heading section found in {file_path.name}")
+        logger.warning(f"  ⚠️  No heading section found in {file_path.name}")
         return False
 
     existing_section = match.group(1)
@@ -105,17 +105,17 @@ def update_cspell_list(file_path: Path, new_words: set[str]) -> bool:
         sorted_words = sorted(all_words, key=str.lower)
 
         new_cspell_line = f"cSpell:ignore: {' '.join(sorted_words)}"
-        new_cspell_list = existing_section.replace(cspell_match.group(0), new_cspell_line)
+        updated_frontmatter = existing_section.replace(cspell_match.group(0), new_cspell_line)
     else:
         # Add new cSpell:ignore line before the closing ---
         sorted_words = sorted(new_words, key=str.lower)
         new_cspell_line = f"cSpell:ignore: {' '.join(sorted_words)}"
 
         # Add the line at the end of the section (before the closing ---)
-        new_cspell_list = existing_section + f"\n{new_cspell_line}"
+        updated_frontmatter = existing_section + f"\n{new_cspell_line}"
 
     # Reconstruct the content
-    new_content = f"---\n{new_cspell_list}\n---\n" + content[existing_section_end:]
+    new_content = f"---\n{updated_frontmatter}\n---\n" + content[existing_section_end:]
 
     with open(file_path, "w") as f:
         f.write(new_content)
@@ -129,7 +129,6 @@ def fix_component_spelling(docs_repo_path: Path) -> dict[str, int]:
 
     Args:
         docs_repo_path: Path to opentelemetry.io repository
-        inventory_path: Path to collector inventory directory
 
     Returns:
         Dictionary with 'files_updated' and 'words_added' counts
@@ -164,12 +163,6 @@ def fix_component_spelling(docs_repo_path: Path) -> dict[str, int]:
             continue
 
         component_words = set(words)
-
-        if not component_words:
-            logger.info(f"\n{file_path.name}:")
-            logger.info("  ⚠️  No component names found in spelling errors")
-            logger.info(f"  Words: {', '.join(sorted(set(words)))}")
-            continue
 
         logger.info(f"\n{file_path.name}:")
         logger.info(f"  Adding {len(component_words)} words: {', '.join(sorted(component_words))}")
