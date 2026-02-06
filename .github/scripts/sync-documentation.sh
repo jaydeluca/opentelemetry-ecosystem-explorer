@@ -127,7 +127,6 @@ echo "Branch: $BRANCH_NAME"
 echo ""
 
 echo "Creating branch and committing changes..."
-cd "$OTEL_DOCS_REPO_PATH" || { echo "Error: Failed to change to directory $OTEL_DOCS_REPO_PATH"; exit 1; }
 git checkout main
 git checkout -B "$BRANCH_NAME"
 git add .
