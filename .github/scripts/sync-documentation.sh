@@ -62,27 +62,41 @@ npm run check:links || echo "Warning: Link check failed"
 npm run fix:format
 cd ..
 
+# Get version info
+VERSION=$(ls -1 ecosystem-registry/collector/core | grep -v -i 'SNAPSHOT' | sort -V | tail -n 1)
+echo "Version: $VERSION"
+echo ""
+
 if [ -f "metadata-issues.md" ]; then
-  echo "Reporting metadata quality issues..."
+  echo "Reporting metadata quality issues for version ${VERSION}..."
 
   ISSUE_NUMBER=$(gh issue list \
     --repo "$GITHUB_REPOSITORY" \
     --label "metadata-quality" \
     --state open \
+    --search "Collector ${VERSION} Metadata Quality Issues in:title" \
     --json number \
     --jq '.[0].number')
 
+  ISSUE_TITLE="Collector ${VERSION} Metadata Quality Issues"
+
   if [ -n "$ISSUE_NUMBER" ]; then
-    echo "Found existing issue #${ISSUE_NUMBER}, adding comment..."
-    COMMENT_BODY="## Updated Metadata Quality Report
+    echo "Found existing issue #${ISSUE_NUMBER} for version ${VERSION}, updating..."
+    UPDATED_BODY="## Metadata Quality Report for Collector ${VERSION}
 
-$(cat metadata-issues.md)"
+$(cat metadata-issues.md)
 
-    gh issue comment "$ISSUE_NUMBER" --body "$COMMENT_BODY"
+---
+_Last updated: $(date -u '+%Y-%m-%d %H:%M:%S UTC')_"
+
+    gh issue edit "$ISSUE_NUMBER" \
+      --repo "$GITHUB_REPOSITORY" \
+      --body "$UPDATED_BODY"
   else
-    echo "No existing issue found, creating new issue..."
+    echo "No existing issue found for version ${VERSION}, creating new issue..."
     gh issue create \
-      --title "Collector Metadata Quality Issues" \
+      --repo "$GITHUB_REPOSITORY" \
+      --title "$ISSUE_TITLE" \
       --label "metadata-quality" \
       --body "$(cat metadata-issues.md)"
   fi
@@ -102,13 +116,8 @@ fi
 echo "Documentation changes detected:"
 echo "$CHANGED_FILES"
 echo ""
-
-# Get version info
-cd ..
-VERSION=$(ls -1 ecosystem-registry/collector/core | grep -v -i 'SNAPSHOT' | sort -V | tail -n 1)
 BRANCH_NAME="collector-docs-${VERSION//\./-}"
 
-echo "Version: $VERSION"
 echo "Branch: $BRANCH_NAME"
 echo ""
 
