@@ -1,3 +1,5 @@
+import { ExploreSection } from "@/features/java-agent/components/explore-section.tsx";
+
 export function JavaAgentPage() {
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
@@ -10,9 +12,7 @@ export function JavaAgentPage() {
           </p>
         </div>
 
-        <div className="rounded-lg border border-border/50 bg-card/50 p-8 text-center">
-          <p className="text-muted-foreground">Java Agent explorer coming soon...</p>
-        </div>
+        <ExploreSection />
       </div>
     </div>
   );
