@@ -18,7 +18,7 @@ export interface InstrumentationData {
   description?: string;
   library_link?: string;
   source_path?: string;
-  minimum_java_version: number;
+  minimum_java_version?: number;
   tags?: string[];
   semantic_conventions?: string[];
   features?: string[];

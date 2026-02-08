@@ -15,6 +15,7 @@ describe("javaagent-data", () => {
   };
 
   const mockVersionManifest: VersionManifest = {
+    version: "2.10.0",
     instrumentations: {
       "akka-actor": "abc123",
       "spring-webmvc": "def456",
@@ -25,6 +26,7 @@ describe("javaagent-data", () => {
     name: "akka-actor",
     display_name: "Akka Actor",
     description: "Instrumentation for Akka Actor",
+    minimum_java_version: 8,
     scope: {
       name: "io.opentelemetry.akka-actor",
     },
@@ -309,7 +311,7 @@ describe("javaagent-data", () => {
     });
 
     it("should handle empty manifest", async () => {
-      const emptyManifest: VersionManifest = { instrumentations: {} };
+      const emptyManifest: VersionManifest = { version: "2.10.0", instrumentations: {} };
       vi.spyOn(idbCache, "getCached").mockResolvedValue(emptyManifest);
 
       const result = await javaagentData.loadAllInstrumentations("2.10.0");
