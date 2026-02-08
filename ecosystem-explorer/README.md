@@ -76,15 +76,16 @@ src/
 ```
 <!-- markdownlint-enable MD010 -->
 
-## Data Layer
+## Data Fetching and Caching
 
-The data layer uses a two-tier caching strategy to minimize network requests:
+We use IndexedDB as a cache to minimize network requests and build a db in the browser. The data layer consists of
+three main parts:
 
 1. IDB Cache (`src/lib/api/idb-cache.ts`) - Browser-persistent storage with two object stores: `metadata` (versions,
    manifests) and `instrumentations` (content-addressed data)
 
 2. Data API (`src/lib/api/javaagent-data.ts`) - Fetching layer that checks IndexedDB first, falls back to network, and
-   caches responses. Includes request deduplication to prevent duplicate fetches.
+   caches responses.
 
 3. React Hooks (`src/hooks/use-javaagent-data.ts`) - Component integration with loading/error states
 

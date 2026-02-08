@@ -86,7 +86,7 @@ export async function loadAllInstrumentations(version: string): Promise<Instrume
   const manifest = await loadVersionManifest(version);
   const instrumentationIds = Object.keys(manifest.instrumentations);
 
-  return await Promise.all(
+  return Promise.all(
     instrumentationIds.map(async (id) => {
       return loadInstrumentation(id, version, manifest);
     })

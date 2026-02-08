@@ -13,38 +13,56 @@ export type StoreName = (typeof STORES)[keyof typeof STORES];
 interface CacheEntry<T> {
   key: string;
   data: T;
-  cachedAt: number;
+  cachedAt: number; // unused for now, will use in future for cache eviction policies
 }
 
 let dbInstance: IDBPDatabase | null = null;
+let dbInitPromise: Promise<IDBPDatabase> | null = null;
+let dbInitFailed = false;
 
 export async function initDB(): Promise<IDBPDatabase> {
   if (!isIDBAvailable()) {
     throw new Error("IndexedDB is not available in this environment");
   }
 
+  if (dbInitFailed) {
+    throw new Error("IndexedDB initialization previously failed");
+  }
+
   if (dbInstance) {
     return dbInstance;
   }
 
-  try {
-    dbInstance = await openDB(DB_NAME, DB_VERSION, {
-      upgrade(db) {
-        if (!db.objectStoreNames.contains(STORES.METADATA)) {
-          db.createObjectStore(STORES.METADATA, { keyPath: "key" });
-        }
-
-        if (!db.objectStoreNames.contains(STORES.INSTRUMENTATIONS)) {
-          db.createObjectStore(STORES.INSTRUMENTATIONS, { keyPath: "key" });
-        }
-      },
-    });
-
-    return dbInstance;
-  } catch (error) {
-    console.error("Failed to initialize IndexedDB:", error);
-    throw error;
+  if (dbInitPromise) {
+    return dbInitPromise;
   }
+
+  dbInitPromise = (async () => {
+    try {
+      const db = await openDB(DB_NAME, DB_VERSION, {
+        upgrade(db) {
+          if (!db.objectStoreNames.contains(STORES.METADATA)) {
+            db.createObjectStore(STORES.METADATA, { keyPath: "key" });
+          }
+
+          if (!db.objectStoreNames.contains(STORES.INSTRUMENTATIONS)) {
+            db.createObjectStore(STORES.INSTRUMENTATIONS, { keyPath: "key" });
+          }
+        },
+      });
+
+      dbInstance = db;
+      dbInitPromise = null;
+      return db;
+    } catch (error) {
+      dbInitFailed = true;
+      dbInitPromise = null;
+      console.error("Failed to initialize IndexedDB:", error);
+      throw error;
+    }
+  })();
+
+  return dbInitPromise;
 }
 
 export async function getCached<T>(key: string, store: StoreName): Promise<T | null> {
@@ -93,6 +111,8 @@ export function closeDB(): void {
     dbInstance.close();
     dbInstance = null;
   }
+  dbInitPromise = null;
+  dbInitFailed = false;
 }
 
 export function isIDBAvailable(): boolean {
