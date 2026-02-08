@@ -10,6 +10,50 @@ instrumentations, and components available in the OpenTelemetry community.
 **No contribution is too small!** We value all forms of participation, from documentation improvements to code
 contributions. If you're new to open source or OpenTelemetry, don't hesitate to ask questions.
 
+## Finding Issues to Work On
+
+Look for issues tagged with:
+
+- [`good first issue`](https://github.com/open-telemetry/opentelemetry-ecosystem-explorer/labels/good%20first%20issue)
+  \- Great for newcomers
+- [`help wanted`](https://github.com/open-telemetry/opentelemetry-ecosystem-explorer/labels/help%20wanted) - Community
+  contributions welcome
+- [`documentation`](https://github.com/open-telemetry/opentelemetry-ecosystem-explorer/labels/documentation) -
+  Documentation improvements
+
+## Mapping The Ecosystem
+
+Building the registry, automation pipelines, and Explorer interface is only part of the work. Before systems can be
+automated, the terrain must first be mapped.
+
+Each project within the ecosystem represents its own landscape with distinct components, structures, and
+conventions. Our task is to survey these landscapes and determine:
+
+- What components exist?
+- What metadata is available?
+- Is that metadata structured in a way that can be incorporated into the registry?
+- Where are the gaps?
+
+In many cases, this requires careful exploration like reading source code, locating configuration files, identifying
+implicit conventions, and translating them into structured, registry-ready data. Even existing data should be regularly
+reviewed and iterated upon.
+
+If you are interested in a particular language, auto-instrumentation tool, or corner of the ecosystem, we would love
+your help.
+
+Choose an area that interests you and begin the survey. Trace the components, locate data, identify patterns, and
+document what you find. If something is unclear or incomplete, open an issue or start a discussion, expedition logs are
+part of the process. We can help validate findings, refine translation strategies, and support integration into the
+registry.
+
+This work is valuable for both newcomers and seasoned contributors. For those new to the community, it provides a
+structured way to understand how projects are organized, how metadata is shaped, and how automation connects systems
+together. For experienced contributors, it offers a broader, cross-ecosystem perspective, revealing patterns,
+inconsistencies, and opportunities for improvement that are often invisible when focused on a single project.
+
+Whether you are surveying your first repository or helping refine automation across dozens, every mapped component
+strengthens the atlas.
+
 ## Pre-requisites
 
 Before you begin contributing, ensure you have the following tools installed:
@@ -77,9 +121,9 @@ git checkout -b your-feature-branch
 
 This repository contains three main components:
 
-- **ecosystem-registry**: Data pipeline and raw data registry (under development)
+- **ecosystem-registry**: Data pipeline and raw data registry
 - **ecosystem-automation**: Automation tools and data collection pipelines
-- **ecosystem-explorer**: Web application for exploring the registry (under development)
+- **ecosystem-explorer**: Web application for exploring the registry
 
 For reference implementations, see:
 
@@ -106,7 +150,7 @@ If you installed pre-commit hooks, these checks will run automatically when you 
 
 ## Testing
 
-This project uses [pytest](https://docs.pytest.org/) for testing.
+The Python modules in this project use [pytest](https://docs.pytest.org/) for testing.
 
 ### Running Tests
 
@@ -130,29 +174,29 @@ uv run pytest -k "test_pattern"
 
 ### Test Organization
 
+#### Python Tests
+
 - Test files follow the naming convention: `test_*.py` or `*_test.py`
 - Tests are located in `ecosystem-automation/` subdirectories
 - Each component has its own test suite
 
-### Finding Issues to Work On
+#### JavaScript Tests
 
-Look for issues tagged with:
-
-- [`good first issue`](https://github.com/open-telemetry/opentelemetry-ecosystem-explorer/labels/good%20first%20issue)
-  \- Great for newcomers
-- [`help wanted`](https://github.com/open-telemetry/opentelemetry-ecosystem-explorer/labels/help%20wanted) - Community
-  contributions welcome
-- [`documentation`](https://github.com/open-telemetry/opentelemetry-ecosystem-explorer/labels/documentation) -
-  Documentation improvements
+- Test files follow the naming convention: `*.test.tsx` or `*.test.ts`
+- Tests are located alongside the components they test in the `src/` directory
+- Test setup file at `src/test/setup.ts` imports jest-dom matchers
 
 ## Contributing Rules
 
 ### Code Standards
 
-- **Follow the style guide**: Use ruff for Python code formatting and linting
-- **Write tests**: Include tests for new features and bug fixes
+- **Follow the style guide**: Install the pre-commit hook to automatically format code and catch linting issues
+- **Write tests**: Include tests for new features and bug fixes, include testing notes in your PR description
+  (screenshots are nice too!)
 - **Document your code**: Add docstrings and comments where logic isn't self-evident
 - **Keep changes focused**: Make PRs focused on a single concern
+- **Add Detailed Descriptions to PRs**: Explain the motivation, approach, and any relevant context in your pull request
+  description
 - **Avoid breaking changes**: Discuss breaking changes in an issue first
 
 ### Community Standards
