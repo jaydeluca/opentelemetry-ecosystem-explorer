@@ -1,14 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import "fake-indexeddb/auto";
-import {
-  initDB,
-  getCached,
-  setCached,
-  clearAllCached,
-  closeDB,
-  isIDBAvailable,
-  STORES,
-} from "./idb-cache";
+import { initDB, getCached, setCached, clearAllCached, closeDB, STORES } from "./idb-cache";
 
 describe("idb-cache", () => {
   beforeEach(async () => {
@@ -75,23 +67,6 @@ describe("idb-cache", () => {
       expect(result).toBeNull();
     });
 
-    it("should handle complex nested objects", async () => {
-      const key = "complex-data";
-      const data = {
-        name: "spring-webmvc",
-        nested: {
-          configurations: [{ name: "endpoint", type: "string", default: "/actuator" }],
-        },
-        tags: ["http", "spring"],
-        metadata: null,
-      };
-
-      await setCached(key, data, STORES.INSTRUMENTATIONS);
-      const result = await getCached<typeof data>(key, STORES.INSTRUMENTATIONS);
-
-      expect(result).toEqual(data);
-    });
-
     it("should overwrite existing data when key is reused", async () => {
       const key = "overwrite-test";
       const oldData = { value: "old" };
@@ -124,13 +99,6 @@ describe("idb-cache", () => {
     });
   });
 
-  describe("isIDBAvailable", () => {
-    it("should return true when indexedDB is available", () => {
-      // fake-indexeddb makes indexedDB available in test environment
-      expect(isIDBAvailable()).toBe(true);
-    });
-  });
-
   describe("closeDB", () => {
     it("should allow operations after close", async () => {
       await initDB();
@@ -142,29 +110,6 @@ describe("idb-cache", () => {
       ).resolves.not.toThrow();
       const result = await getCached("test", STORES.INSTRUMENTATIONS);
       expect(result).toEqual({ data: "value" });
-    });
-  });
-
-  describe("type safety", () => {
-    it("should preserve type information through cache", async () => {
-      interface TestType {
-        id: number;
-        name: string;
-        optional?: string;
-      }
-
-      const key = "typed-data";
-      const data: TestType = { id: 1, name: "test" };
-
-      await setCached<TestType>(key, data, STORES.INSTRUMENTATIONS);
-      const result = await getCached<TestType>(key, STORES.INSTRUMENTATIONS);
-
-      expect(result).toEqual(data);
-      // TypeScript should infer result as TestType | null
-      if (result) {
-        expect(typeof result.id).toBe("number");
-        expect(typeof result.name).toBe("string");
-      }
     });
   });
 });

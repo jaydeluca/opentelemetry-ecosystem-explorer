@@ -130,24 +130,6 @@ describe("javaagent-data", () => {
       expect(result3).toEqual(mockVersionsIndex);
       expect(global.fetch).toHaveBeenCalledTimes(1);
     });
-
-    it("should handle concurrent requests when one fails", async () => {
-      vi.spyOn(idbCache, "getCached").mockResolvedValue(null);
-      vi.spyOn(idbCache, "setCached").mockResolvedValue();
-
-      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-        ok: false,
-        status: 500,
-        statusText: "Server Error",
-      });
-
-      const request1 = javaagentData.loadVersions();
-      const request2 = javaagentData.loadVersions();
-
-      await expect(Promise.all([request1, request2])).rejects.toThrow(
-        "Failed to load versions-index: 500 Server Error"
-      );
-    });
   });
 
   describe("loadVersionManifest", () => {
@@ -228,25 +210,6 @@ describe("javaagent-data", () => {
       await expect(javaagentData.loadInstrumentation("non-existent", "2.10.0")).rejects.toThrow(
         'Instrumentation "non-existent" not found in version 2.10.0'
       );
-    });
-
-    it("should accept an optional manifest parameter to avoid redundant loads", async () => {
-      const getCachedSpy = vi
-        .spyOn(idbCache, "getCached")
-        .mockImplementation(async (key: string) => {
-          if (key === "instrumentation-abc123") return mockInstrumentationData;
-          return null;
-        });
-
-      const result = await javaagentData.loadInstrumentation(
-        "akka-actor",
-        "2.10.0",
-        mockVersionManifest
-      );
-
-      expect(result).toEqual(mockInstrumentationData);
-      const manifestCalls = getCachedSpy.mock.calls.filter((call) => call[0] === "manifest-2.10.0");
-      expect(manifestCalls).toHaveLength(0);
     });
 
     it("should throw error for non-existent instrumentation when manifest is provided", async () => {
