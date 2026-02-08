@@ -19,6 +19,10 @@ interface CacheEntry<T> {
 let dbInstance: IDBPDatabase | null = null;
 
 export async function initDB(): Promise<IDBPDatabase> {
+  if (!isIDBAvailable()) {
+    throw new Error("IndexedDB is not available in this environment");
+  }
+
   if (dbInstance) {
     return dbInstance;
   }
@@ -36,7 +40,6 @@ export async function initDB(): Promise<IDBPDatabase> {
       },
     });
 
-    console.log("IndexedDB initialized");
     return dbInstance;
   } catch (error) {
     console.error("Failed to initialize IndexedDB:", error);
@@ -80,7 +83,6 @@ export async function clearAllCached(): Promise<void> {
   try {
     const db = await initDB();
     await Promise.all([db.clear(STORES.METADATA), db.clear(STORES.INSTRUMENTATIONS)]);
-    console.log("Cache cleared");
   } catch (error) {
     console.error("Failed to clear cache:", error);
   }

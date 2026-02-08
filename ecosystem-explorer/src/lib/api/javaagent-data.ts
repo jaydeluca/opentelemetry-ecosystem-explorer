@@ -1,11 +1,11 @@
 import type { InstrumentationData, VersionManifest, VersionsIndex } from "@/types/javaagent";
-import { getCached, setCached, STORES } from "./idb-cache";
+import { getCached, setCached, STORES, isIDBAvailable } from "./idb-cache";
 
 const BASE_PATH = "/data/javaagent";
 
 const inflightRequests = new Map<string, Promise<unknown>>();
 
-const idbEnabled = true;
+const idbEnabled = isIDBAvailable();
 
 async function fetchWithCache<T>(
   cacheKey: string,
@@ -68,10 +68,11 @@ export async function loadVersionManifest(version: string): Promise<VersionManif
 
 export async function loadInstrumentation(
   id: string,
-  version: string
+  version: string,
+  manifest?: VersionManifest
 ): Promise<InstrumentationData> {
-  const manifest = await loadVersionManifest(version);
-  const hash = manifest.instrumentations[id];
+  const resolvedManifest = manifest ?? (await loadVersionManifest(version));
+  const hash = resolvedManifest.instrumentations[id];
 
   if (!hash) {
     throw new Error(`Instrumentation "${id}" not found in version ${version}`);
@@ -89,11 +90,9 @@ export async function loadAllInstrumentations(version: string): Promise<Instrume
   const manifest = await loadVersionManifest(version);
   const instrumentationIds = Object.keys(manifest.instrumentations);
 
-  console.log(`Loading ${instrumentationIds.length} instrumentations for version ${version}`);
-
   return await Promise.all(
     instrumentationIds.map(async (id) => {
-      return loadInstrumentation(id, version);
+      return loadInstrumentation(id, version, manifest);
     })
   );
 }

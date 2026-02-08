@@ -56,6 +56,11 @@ export function useInstrumentations(version: string): DataState<InstrumentationD
     let cancelled = false;
 
     async function loadData() {
+      if (!version) {
+        setState({ data: null, loading: false, error: null });
+        return;
+      }
+
       setState({ data: null, loading: true, error: null });
 
       try {
@@ -74,9 +79,7 @@ export function useInstrumentations(version: string): DataState<InstrumentationD
       }
     }
 
-    if (version) {
-      loadData();
-    }
+    loadData();
 
     return () => {
       cancelled = true;

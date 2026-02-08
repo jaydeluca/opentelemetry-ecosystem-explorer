@@ -9,6 +9,7 @@ export interface VersionInfo {
 
 export interface VersionManifest {
   instrumentations: Record<string, string>;
+  version: string;
 }
 
 export interface InstrumentationData {
@@ -17,8 +18,10 @@ export interface InstrumentationData {
   description?: string;
   library_link?: string;
   source_path?: string;
+  minimum_java_version: number;
   tags?: string[];
   semantic_conventions?: string[];
+  features?: string[];
   scope: InstrumentationScope;
   target_versions?: TargetVersions;
   configurations?: Configuration[];
