@@ -9,7 +9,7 @@ collecting, storing, and presenting metadata about OpenTelemetry ecosystem compo
 ### ecosystem-automation
 
 Automated data collection and transformation pipelines,
-run via github actions and scheduled workflows.
+run via Github Actions and scheduled workflows.
 
 **Scope**:
 

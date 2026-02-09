@@ -75,10 +75,9 @@ Hash in filename guarantees immutable content:
 }
 ```
 
-Caching: Short TTL (updates when new versions added) - or perhaps we can add a random hash to the filename to make it
-immutable as well? Then we can just update the file with the new hash when a new version is added, and set a long TTL.
-This would eliminate the need for cache invalidation entirely. We would just need to ensure that the web application
-always fetches the latest versions index before fetching any version manifests.
+Caching: `versions-index.json` is updated when new versions are added and should be served with a short TTL (for example
+`Cache-Control: public, max-age=60`) so clients quickly observe new versions. Clients are expected to fetch the current
+versions index before requesting any specific version manifests.
 
 ### Version Manifest
 
