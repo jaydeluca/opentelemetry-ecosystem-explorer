@@ -13,11 +13,11 @@ contributions. If you're new to open source or OpenTelemetry, don't hesitate to 
 
 Look for issues tagged with:
 
-- [`good first issue`](https://github.com/open-telemetry/opentelemetry-ecosystem-explorer/labels/good%20first%20issue)
+* [`good first issue`](https://github.com/open-telemetry/opentelemetry-ecosystem-explorer/labels/good%20first%20issue)
   \- Great for newcomers
-- [`help wanted`](https://github.com/open-telemetry/opentelemetry-ecosystem-explorer/labels/help%20wanted) - Community
+* [`help wanted`](https://github.com/open-telemetry/opentelemetry-ecosystem-explorer/labels/help%20wanted) - Community
   contributions welcome
-- [`documentation`](https://github.com/open-telemetry/opentelemetry-ecosystem-explorer/labels/documentation) -
+* [`documentation`](https://github.com/open-telemetry/opentelemetry-ecosystem-explorer/labels/documentation) -
   Documentation improvements
 
 ## Mapping The Ecosystem
@@ -28,10 +28,10 @@ automated, the terrain must first be mapped.
 Each project within the ecosystem represents its own landscape with distinct components, structures, and
 conventions. Our task is to survey these landscapes and determine:
 
-- What components exist?
-- What metadata is available?
-- Is that metadata structured in a way that can be incorporated into the registry?
-- Where are the gaps?
+* What components exist?
+* What metadata is available?
+* Is that metadata structured in a way that can be incorporated into the registry?
+* Where are the gaps?
 
 In many cases, this requires careful exploration like reading source code, locating configuration files, identifying
 implicit conventions, and translating them into structured, registry-ready data. Even existing data should be regularly
@@ -59,29 +59,29 @@ Before you begin contributing, ensure you have the following tools installed:
 
 ### Required Tools
 
-- **Python 3.11 or higher**: The project is built with Python and requires version 3.11+
-  - Check your version: `python --version` or `python3 --version`
-  - Download from [python.org](https://www.python.org/downloads/)
+* **Python 3.11 or higher**: The project is built with Python and requires version 3.11+
+  * Check your version: `python --version` or `python3 --version`
+  * Download from [python.org](https://www.python.org/downloads/)
 
-- **uv**: Fast Python package installer and resolver
-  - Install with: `pip install uv` or follow [uv installation guide](https://github.com/astral-sh/uv)
+* **uv**: Fast Python package installer and resolver
+  * Install with: `pip install uv` or follow [uv installation guide](https://github.com/astral-sh/uv)
 
-- **Node.js 18.0.0 or higher**: Required for markdown linting
-  - Check your version: `node --version`
-  - Download from [nodejs.org](https://nodejs.org/)
+* **Node.js 18.0.0 or higher**: Required for markdown linting
+  * Check your version: `node --version`
+  * Download from [nodejs.org](https://nodejs.org/)
 
-- **npm**: Comes with Node.js, used for managing development dependencies
-  - Check your version: `npm --version`
+* **npm**: Comes with Node.js, used for managing development dependencies
+  * Check your version: `npm --version`
 
-- **Git**: Version control system (used in some of the automation scripts)
-  - Check your version: `git --version`
-  - Download from [git-scm.com](https://git-scm.com/)
+* **Git**: Version control system (used in some of the automation scripts)
+  * Check your version: `git --version`
+  * Download from [git-scm.com](https://git-scm.com/)
 
 ### Optional but Recommended
 
-- **pre-commit**: Git hook framework for running checks before commits
-  - Installed automatically with development dependencies
-  - Helps catch issues before they're committed
+* **pre-commit**: Git hook framework for running checks before commits
+  * Installed automatically with development dependencies
+  * Helps catch issues before they're committed
 
 ## Getting Started
 
@@ -120,9 +120,9 @@ git checkout -b your-feature-branch
 
 This repository contains three components:
 
-- **ecosystem-registry**: Raw data registry
-- **ecosystem-automation**: Automation pipelines
-- **ecosystem-explorer**: Web application
+* **ecosystem-registry**: Raw data registry
+* **ecosystem-automation**: Automation pipelines
+* **ecosystem-explorer**: Web application
 
 Reference
 implementations: [collector-watcher](https://github.com/jaydeluca/collector-watcher),
@@ -174,25 +174,25 @@ uv run pytest -k "test_pattern"
 
 #### Python Tests
 
-- Test files follow the naming convention: `test_*.py` or `*_test.py`
-- Tests are located in `ecosystem-automation/` subdirectories
-- Each component has its own test suite
+* Test files follow the naming convention: `test_*.py` or `*_test.py`
+* Tests are located in `ecosystem-automation/` subdirectories
+* Each component has its own test suite
 
 #### JavaScript Tests
 
-- Test files follow the naming convention: `*.test.tsx` or `*.test.ts`
-- Tests are located alongside the components they test in the `src/` directory
-- Test setup file at `src/test/setup.ts` imports jest-dom matchers
+* Test files follow the naming convention: `*.test.tsx` or `*.test.ts`
+* Tests are located alongside the components they test in the `src/` directory
+* Test setup file at `src/test/setup.ts` imports jest-dom matchers
 
 ## Contributing Rules
 
 ### Code Standards
 
-- **Follow the style guide**: Install pre-commit hooks to catch issues before committing
-- **Write tests**: Include tests and testing notes in PR descriptions (screenshots appreciated)
-- **Document your code**: Add docstrings and comments for non-obvious logic
-- **Keep changes focused**: One concern per PR
-- **Write detailed PR descriptions**: Explain motivation, approach, and context
+* **Follow the style guide**: Install pre-commit hooks to catch issues before committing
+* **Write tests**: Include tests and testing notes in PR descriptions (screenshots appreciated)
+* **Document your code**: Add docstrings and comments for non-obvious logic
+* **Keep changes focused**: One concern per PR
+* **Write detailed PR descriptions**: Explain motivation, approach, and context
 
 ### Community Standards
 
@@ -220,10 +220,10 @@ This helps avoid wasted effort on features that may not align with project goals
 
 ### Community Resources
 
-- **Slack**: Join the [#otel-ecosystem-explorer](https://cloud-native.slack.com/archives/C09N6DDGSPQ) channel on CNCF
+* **Slack**: Join the [#otel-ecosystem-explorer](https://cloud-native.slack.com/archives/C09N6DDGSPQ) channel on CNCF
   Slack
   ([get invite](https://communityinviter.com/apps/cloud-native/cncf))
-- **OpenTelemetry Community**: [Community repo](https://github.com/open-telemetry/community) with governance and
+* **OpenTelemetry Community**: [Community repo](https://github.com/open-telemetry/community) with governance and
   contributing guides
-- **Project Proposal**:
+* **Project Proposal**:
   [Ecosystem Explorer Proposal](https://github.com/open-telemetry/community/blob/main/projects/ecosystem-explorer.md)

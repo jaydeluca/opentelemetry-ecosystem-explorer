@@ -37,8 +37,8 @@ ecosystem-registry/
 
 ## Key Principles
 
-- **Aggregated YAML files**: One file per component type per version (human-readable, git-friendly)
-- **Version-scoped**: Each version has a complete, independent snapshot that can be regenerated from source
+* **Aggregated YAML files**: One file per component type per version (human-readable, git-friendly)
+* **Version-scoped**: Each version has a complete, independent snapshot that can be regenerated from source
 
 ## Java Agent Structure
 
@@ -60,12 +60,12 @@ java/
 ```yaml
 file_format: 0.1
 libraries:
-  - name: activej-http-6.0
+  * name: activej-http-6.0
     display_name: ActiveJ
     description: This instrumentation enables HTTP server spans and metrics...
     semantic_conventions:
-      - HTTP_SERVER_SPANS
-      - HTTP_SERVER_METRICS
+      * HTTP_SERVER_SPANS
+      * HTTP_SERVER_METRICS
     library_link: https://activej.io/
     source_path: instrumentation/activej-http-6.0
     minimum_java_version: 17
@@ -74,33 +74,33 @@ libraries:
       schema_url: https://opentelemetry.io/schemas/1.37.0
     target_versions:
       javaagent:
-        - "io.activej:activej-http:[6.0,)"
+        * "io.activej:activej-http:[6.0,)"
     configurations:
-      - name: otel.instrumentation.http.known-methods
+      * name: otel.instrumentation.http.known-methods
         description: Configures the instrumentation to recognize...
         type: list
         default: CONNECT,DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT,TRACE
     telemetry:
-      - when: default
+      * when: default
         metrics:
-          - name: http.server.request.duration
+          * name: http.server.request.duration
             description: Duration of HTTP server requests
             type: HISTOGRAM
             unit: s
             attributes:
-              - name: http.request.method
+              * name: http.request.method
                 type: STRING
-              - name: http.response.status_code
+              * name: http.response.status_code
                 type: LONG
         spans:
-          - span_kind: SERVER
+          * span_kind: SERVER
             attributes:
-              - name: http.request.method
+              * name: http.request.method
                 type: STRING
-              - name: http.response.status_code
+              * name: http.response.status_code
                 type: LONG
 
-  - name: aws-sdk-2.2
+  * name: aws-sdk-2.2
     display_name: AWS SDK 2.2
     # ... (next instrumentation)
 
@@ -109,8 +109,8 @@ libraries:
 
 **Key Features**:
 
-- `libraries`: Array of all instrumentations
-- Complete metadata for each instrumentation in a single file
+* `libraries`: Array of all instrumentations
+* Complete metadata for each instrumentation in a single file
 
 ## Collector Structure
 
@@ -146,35 +146,35 @@ version: 0.145.0
 repository: opentelemetry-collector-contrib
 component_type: receiver
 components:
-  - name: activedirectorydsreceiver
+  * name: activedirectorydsreceiver
     metadata:
       type: active_directory_ds
       status:
         class: receiver
         stability:
           beta:
-            - metrics
+            * metrics
         distributions:
-          - contrib
+          * contrib
         codeowners:
           active:
-            - pjanotti
+            * pjanotti
           seeking_new: true
         unsupported_platforms:
-          - darwin
-          - linux
+          * darwin
+          * linux
       attributes:
         bind_type:
           description: The type of bind to the domain server
           type: string
           enum:
-            - client
-            - server
+            * client
+            * server
       # ... (more attributes)
       metrics:
         # ... (metric definitions)
 
-  - name: aerospikereceiver
+  * name: aerospikereceiver
     metadata:
       # ... (next receiver)
 
@@ -183,10 +183,10 @@ components:
 
 **Key Features**:
 
-- `distribution`: core or contrib
-- `repository`: Source repository name
-- `component_type`: receiver, processor, exporter, connector, or extension
-- `components`: Array of all components of this type
+* `distribution`: core or contrib
+* `repository`: Source repository name
+* `component_type`: receiver, processor, exporter, connector, or extension
+* `components`: Array of all components of this type
 
 ## Version Types
 

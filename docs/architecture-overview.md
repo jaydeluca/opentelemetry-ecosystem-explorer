@@ -13,10 +13,10 @@ run via github actions and scheduled workflows.
 
 **Scope**:
 
-- Watch upstream projects for releases and changes
-- Extract and normalize metadata to registry schema
-- Generate content-addressed storage files
-- Synchronize with opentelemetry.io documentation
+* Watch upstream projects for releases and changes
+* Extract and normalize metadata to registry schema
+* Generate content-addressed storage files
+* Synchronize with opentelemetry.io documentation
 
 ### ecosystem-registry
 
@@ -24,8 +24,8 @@ Versioned, normalized metadata storage
 
 **Scope**:
 
-- Store historical metadata for all versions
-- Support multiple ecosystems (Java Agent, Collector, etc.)
+* Store historical metadata for all versions
+* Support multiple ecosystems (Java Agent, Collector, etc.)
 
 ### ecosystem-explorer
 
@@ -33,9 +33,9 @@ User-facing web application (React + TypeScript + Vite) for browsing and explori
 
 **Scope**:
 
-- Browse, search, and filter instrumentations and collector components
-- View detailed telemetry information
-- Compare versions
+* Browse, search, and filter instrumentations and collector components
+* View detailed telemetry information
+* Compare versions
 
 ## Data Flow
 
@@ -56,15 +56,15 @@ User-facing web application (React + TypeScript + Vite) for browsing and explori
 
 **Benefits**:
 
-- Low maintenance and operational overhead
-- High reliability and performance via CDN
-- Low cost
+* Low maintenance and operational overhead
+* High reliability and performance via CDN
+* Low cost
 
 **Tradeoffs**:
 
-- Updates require rebuild/redeploy
-- No server-side processing
-- Client-side computation only
+* Updates require rebuild/redeploy
+* No server-side processing
+* Client-side computation only
 
 ### Content-Addressed Storage
 
@@ -72,8 +72,8 @@ User-facing web application (React + TypeScript + Vite) for browsing and explori
 
 **Benefits**:
 
-- Automatic deduplication across versions
-- Immutable files enable aggressive caching
-- Easy version comparison and change identification
+* Automatic deduplication across versions
+* Immutable files enable aggressive caching
+* Easy version comparison and change identification
 
 See [Content-Addressed Storage](./content-addressed-storage.md) for implementation details.
