@@ -75,15 +75,14 @@ echo ""
 if [ -f "metadata-issues.md" ]; then
   echo "Reporting metadata quality issues for version ${VERSION}..."
 
+  ISSUE_TITLE="Collector ${VERSION} Metadata Quality Issues"
+
   ISSUE_NUMBER=$(gh issue list \
     --repo "$GITHUB_REPOSITORY" \
     --label "metadata-quality" \
     --state open \
-    --search "Collector ${VERSION} Metadata Quality Issues in:title" \
-    --json number \
-    --jq '.[0].number // empty')
-
-  ISSUE_TITLE="Collector ${VERSION} Metadata Quality Issues"
+    --json number,title \
+    --jq ".[] | select(.title == \"${ISSUE_TITLE}\") | .number")
 
   if [ -n "$ISSUE_NUMBER" ]; then
     echo "Found existing issue #${ISSUE_NUMBER} for version ${VERSION}, updating..."

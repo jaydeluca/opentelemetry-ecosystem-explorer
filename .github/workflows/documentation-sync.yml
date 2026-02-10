@@ -36,7 +36,7 @@ jobs:
         with:
           repository: open-telemetry/opentelemetry.io
           path: opentelemetry.io
-          token: ${{ github.token }}
+          token: ${{ steps.otelbot-token.outputs.token }}
           persist-credentials: false
 
       - name: Configure git
