@@ -79,10 +79,9 @@ if [ -f "metadata-issues.md" ]; then
 
   ISSUE_NUMBER=$(gh issue list \
     --repo "$GITHUB_REPOSITORY" \
-    --label "metadata-quality" \
     --state open \
     --json number,title \
-    --jq ".[] | select(.title == \"${ISSUE_TITLE}\") | .number")
+    --jq ".[] | select(.title == \"${ISSUE_TITLE}\") | .number | select(. != null)" | head -n 1)
 
   if [ -n "$ISSUE_NUMBER" ]; then
     echo "Found existing issue #${ISSUE_NUMBER} for version ${VERSION}, updating..."
@@ -95,14 +94,21 @@ _Last updated: $(date -u '+%Y-%m-%d %H:%M:%S UTC')_"
 
     gh issue edit "$ISSUE_NUMBER" \
       --repo "$GITHUB_REPOSITORY" \
-      --body "$UPDATED_BODY"
+      --body "$UPDATED_BODY" \
+      --add-label "metadata-quality" || true
   else
     echo "No existing issue found for version ${VERSION}, creating new issue..."
     gh issue create \
       --repo "$GITHUB_REPOSITORY" \
       --title "$ISSUE_TITLE" \
       --label "metadata-quality" \
-      --body "$(cat metadata-issues.md)"
+      --body "$(cat metadata-issues.md)" || {
+        echo "Failed to create issue with label, trying without label..."
+        gh issue create \
+          --repo "$GITHUB_REPOSITORY" \
+          --title "$ISSUE_TITLE" \
+          --body "$(cat metadata-issues.md)"
+      }
   fi
 else
   echo "No metadata issues file found, skipping issue reporting"
