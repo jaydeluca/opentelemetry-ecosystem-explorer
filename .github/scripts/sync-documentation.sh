@@ -25,6 +25,20 @@ if [ -z "$GH_TOKEN" ]; then
   exit 1
 fi
 
+echo "Verifying gh CLI authentication..."
+if gh auth status >/dev/null 2>&1; then
+  echo "✓ gh CLI is authenticated"
+else
+  echo "✗ gh CLI authentication failed"
+fi
+
+# Debug: Check token permissions
+echo ""
+echo "Checking token access to repositories..."
+echo "Can access ${GITHUB_REPOSITORY}: $(gh repo view "${GITHUB_REPOSITORY}" --json name -q '.name' 2>&1 > /dev/null && echo "✓" || echo "✗")"
+echo "Can access ${BRANCH_OWNER}/opentelemetry.io: $(gh repo view "${BRANCH_OWNER}/opentelemetry.io" --json name -q '.name' 2>&1 > /dev/null && echo "✓" || echo "✗")"
+echo ""
+
 if [ -z "$BRANCH_OWNER" ]; then
   echo "Error: BRANCH_OWNER environment variable is required"
   exit 1
@@ -116,6 +130,7 @@ fi
 
 echo "Checking for documentation changes..."
 cd "$OTEL_DOCS_REPO_PATH" || { echo "Error: Failed to change to directory $OTEL_DOCS_REPO_PATH"; exit 1; }
+echo "Working directory: $(pwd)"
 CHANGED_FILES=$(git diff --name-only content/en/docs/collector/components/)
 
 if [ -z "$CHANGED_FILES" ]; then
@@ -132,6 +147,12 @@ echo "Branch: $BRANCH_NAME"
 echo ""
 
 echo "Creating branch and committing changes..."
+
+# Ensure we're using the correct git config
+echo "Current git config:"
+git config user.name
+git config user.email
+
 git checkout main
 git checkout -B "$BRANCH_NAME"
 git add .
@@ -154,12 +175,48 @@ echo "  • Push branch to:    ${BRANCH_OWNER}/opentelemetry.io"
 echo "  • Create PR against: ${PR_BASE_OWNER}/opentelemetry.io"
 echo ""
 
+# Clear any existing credential helpers and configure for push
+git config --local --unset-all credential.helper 2>/dev/null || true
+git config --local --unset-all http.https://github.com/.extraheader 2>/dev/null || true
+
 # Set up remote and push
 git remote remove target-repo 2>/dev/null || true
 git remote add target-repo "https://x-access-token:${GH_TOKEN}@github.com/${BRANCH_OWNER}/opentelemetry.io.git"
-git push -f target-repo "$BRANCH_NAME"
 
-echo "Pushed branch '${BRANCH_NAME}' to ${BRANCH_OWNER}/opentelemetry.io"
+echo "Debug: Configured remote 'target-repo'"
+echo "Remote 'target-repo' configured for: ${BRANCH_OWNER}/opentelemetry.io"
+
+# Verify token is available
+if [ -z "$GH_TOKEN" ]; then
+  echo "ERROR: GH_TOKEN is not set!"
+  exit 1
+else
+  echo "GH_TOKEN is set."
+fi
+
+if git push -f target-repo "$BRANCH_NAME" >/dev/null 2>&1; then
+  echo "✓ Pushed branch '${BRANCH_NAME}' to ${BRANCH_OWNER}/opentelemetry.io"
+else
+  # Push failed - show sanitized error
+  echo ""
+  echo "============================================================================"
+  echo "ERROR: Failed to push to ${BRANCH_OWNER}/opentelemetry.io"
+  echo "============================================================================"
+  echo ""
+  echo "Attempting to diagnose the issue..."
+
+  # Safe diagnostic checks that don't expose the token
+  if git ls-remote target-repo HEAD >/dev/null 2>&1; then
+    echo "✓ Can connect to remote repository"
+    echo "✗ Push was rejected (likely a permissions issue)"
+  else
+    echo "✗ Cannot connect to remote repository"
+    echo "  - Check if otelbot GitHub App is installed"
+    echo "  - Check if the token has the correct permissions"
+  fi
+  echo ""
+  exit 1
+fi
 
 # Determine PR head reference format
 # GitHub requires different formats:
