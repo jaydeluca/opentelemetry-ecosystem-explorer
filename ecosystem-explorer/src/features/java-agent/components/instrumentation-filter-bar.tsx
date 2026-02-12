@@ -57,6 +57,7 @@ export function InstrumentationFilterBar({
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => toggleTelemetry("spans")}
+              aria-pressed={filters.telemetry.has("spans")}
               className={`px-3 py-1.5 text-sm rounded-md border-2 transition-all font-medium ${getTelemetryFilterClasses(
                 "spans",
                 filters.telemetry.has("spans")
@@ -66,6 +67,7 @@ export function InstrumentationFilterBar({
             </button>
             <button
               onClick={() => toggleTelemetry("metrics")}
+              aria-pressed={filters.telemetry.has("metrics")}
               className={`px-3 py-1.5 text-sm rounded-md border-2 transition-all font-medium ${getTelemetryFilterClasses(
                 "metrics",
                 filters.telemetry.has("metrics")
@@ -81,6 +83,7 @@ export function InstrumentationFilterBar({
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => toggleTarget("javaagent")}
+              aria-pressed={filters.target.has("javaagent")}
               className={`px-3 py-1.5 text-sm rounded-md border-2 transition-all font-medium ${getTargetFilterClasses(
                 "javaagent",
                 filters.target.has("javaagent")
@@ -90,6 +93,7 @@ export function InstrumentationFilterBar({
             </button>
             <button
               onClick={() => toggleTarget("library")}
+              aria-pressed={filters.target.has("library")}
               className={`px-3 py-1.5 text-sm rounded-md border-2 transition-all font-medium ${getTargetFilterClasses(
                 "library",
                 filters.target.has("library")

@@ -92,6 +92,16 @@ export function JavaInstrumentationListPage() {
     );
   }
 
+  if (!latestVersion) {
+    return (
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="p-6 border border-yellow-500/50 rounded-lg bg-yellow-500/10 text-yellow-600 dark:text-yellow-400">
+          <h3 className="font-semibold mb-2">No version available</h3>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
       <div className="space-y-6">

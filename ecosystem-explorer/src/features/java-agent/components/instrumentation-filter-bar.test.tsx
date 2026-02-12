@@ -125,4 +125,24 @@ describe("InstrumentationFilterBar", () => {
     expect(javaAgentButton.className).toContain(FILTER_STYLES.target.javaagent.active);
     expect(standaloneButton.className).toContain(FILTER_STYLES.target.library.inactive);
   });
+
+  it("sets aria-pressed attribute correctly for toggle buttons", () => {
+    const activeFilters: FilterState = {
+      search: "",
+      telemetry: new Set(["spans"]),
+      target: new Set(["library"]),
+    };
+
+    render(<InstrumentationFilterBar filters={activeFilters} onFiltersChange={vi.fn()} />);
+
+    const spansButton = screen.getByRole("button", { name: "Spans" });
+    const metricsButton = screen.getByRole("button", { name: "Metrics" });
+    const javaAgentButton = screen.getByRole("button", { name: "Java Agent" });
+    const standaloneButton = screen.getByRole("button", { name: "Standalone" });
+
+    expect(spansButton).toHaveAttribute("aria-pressed", "true");
+    expect(metricsButton).toHaveAttribute("aria-pressed", "false");
+    expect(javaAgentButton).toHaveAttribute("aria-pressed", "false");
+    expect(standaloneButton).toHaveAttribute("aria-pressed", "true");
+  });
 });
