@@ -18,13 +18,12 @@ describe("InstrumentationFilterBar", () => {
     expect(screen.getByPlaceholderText("Search instrumentations...")).toBeInTheDocument();
   });
 
-  it("calls onFiltersChange when search input changes", async () => {
-    const user = userEvent.setup();
+  it("calls onFiltersChange when search input changes", () => {
     const onFiltersChange = vi.fn();
     render(<InstrumentationFilterBar filters={defaultFilters} onFiltersChange={onFiltersChange} />);
 
     const input = screen.getByPlaceholderText("Search instrumentations...");
-    await user.type(input, "http");
+    fireEvent.change(input, { target: { value: "http" } });
 
     expect(onFiltersChange).toHaveBeenCalledWith({
       ...defaultFilters,
