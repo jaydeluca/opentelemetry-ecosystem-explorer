@@ -4,6 +4,8 @@
     "config:best-practices",
     "helpers:pinGitHubActionDigestsToSemver"
   ],
+  "minimumReleaseAge": "14 days",
+  "internalChecksFilter": "strict",
   "packageRules": [
     {
       "groupName": "all dependencies",
