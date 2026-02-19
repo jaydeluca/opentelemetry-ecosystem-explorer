@@ -9,11 +9,16 @@ export function InstrumentationDetailPage() {
   const navigate = useNavigate();
 
   const { data: versionsData, loading: versionsLoading } = useVersions();
+
+  const shouldFetchInstrumentation = version !== "latest";
   const {
     data: instrumentation,
     loading: instrumentationLoading,
     error,
-  } = useInstrumentation(name!, version!);
+  } = useInstrumentation(
+    shouldFetchInstrumentation ? name! : "",
+    shouldFetchInstrumentation ? version! : ""
+  );
 
   const loading = versionsLoading || instrumentationLoading;
 
@@ -39,27 +44,13 @@ export function InstrumentationDetailPage() {
     );
   }
 
-  if (error) {
+  if (error || !instrumentation) {
     return (
       <div className="max-w-7xl mx-auto px-6 py-12">
         <BackButton />
         <div className="mt-6 p-6 border border-red-500/50 rounded-lg bg-red-500/10 text-red-600 dark:text-red-400">
           <h3 className="font-semibold mb-2">Error loading instrumentation</h3>
-          <p className="text-sm">{error.message}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!instrumentation) {
-    return (
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <BackButton />
-        <div className="mt-6 p-6 border border-yellow-500/50 rounded-lg bg-yellow-500/10 text-yellow-600 dark:text-yellow-400">
-          <h3 className="font-semibold mb-2">Instrumentation not found</h3>
-          <p className="text-sm">
-            The instrumentation &quot;{name}&quot; could not be found in version {version}.
-          </p>
+          <p className="text-sm">{error?.message || "Instrumentation not found"}</p>
         </div>
       </div>
     );

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { MemoryRouter, Route, Routes, useNavigate } from "react-router-dom";
 import { InstrumentationDetailPage } from "./instrumentation-detail-page";
 import type { InstrumentationData } from "@/types/javaagent";
 
@@ -12,6 +12,14 @@ vi.mock("@/hooks/use-javaagent-data", () => ({
 vi.mock("@/components/ui/back-button", () => ({
   BackButton: () => <button>Back</button>,
 }));
+
+vi.mock("react-router-dom", async () => {
+  const actual = await vi.importActual("react-router-dom");
+  return {
+    ...actual,
+    useNavigate: vi.fn(),
+  };
+});
 
 import { useVersions, useInstrumentation } from "@/hooks/use-javaagent-data";
 
@@ -47,7 +55,11 @@ function renderWithRouter(initialPath: string) {
 }
 
 describe("InstrumentationDetailPage", () => {
+  const mockNavigate = vi.fn();
+
   beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(useNavigate).mockReturnValue(mockNavigate);
     vi.mocked(useVersions).mockReturnValue({
       data: mockVersionsData,
       loading: false,
@@ -80,7 +92,7 @@ describe("InstrumentationDetailPage", () => {
     expect(screen.getByText("Failed to fetch instrumentation data")).toBeInTheDocument();
   });
 
-  it("shows not found message when instrumentation is null", () => {
+  it("shows error message when instrumentation is null without error", () => {
     vi.mocked(useInstrumentation).mockReturnValue({
       data: null,
       loading: false,
@@ -89,8 +101,8 @@ describe("InstrumentationDetailPage", () => {
 
     renderWithRouter("/java-agent/instrumentation/2.0.0/jdbc");
 
+    expect(screen.getByText("Error loading instrumentation")).toBeInTheDocument();
     expect(screen.getByText("Instrumentation not found")).toBeInTheDocument();
-    expect(screen.getByText(/The instrumentation "jdbc" could not be found/)).toBeInTheDocument();
   });
 
   it("renders instrumentation details successfully", () => {
@@ -109,5 +121,31 @@ describe("InstrumentationDetailPage", () => {
     expect(screen.getByText("Version:")).toBeInTheDocument();
     expect(screen.getByText("2.0.0")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Back" })).toBeInTheDocument();
+  });
+
+  it("does not fetch instrumentation when version is 'latest'", () => {
+    vi.mocked(useInstrumentation).mockReturnValue({
+      data: null,
+      loading: false,
+      error: null,
+    });
+
+    renderWithRouter("/java-agent/instrumentation/latest/jdbc");
+
+    expect(useInstrumentation).toHaveBeenCalledWith("", "");
+  });
+
+  it("redirects from 'latest' to resolved version", () => {
+    vi.mocked(useInstrumentation).mockReturnValue({
+      data: null,
+      loading: false,
+      error: null,
+    });
+
+    renderWithRouter("/java-agent/instrumentation/latest/jdbc");
+
+    expect(mockNavigate).toHaveBeenCalledWith("/java-agent/instrumentation/2.0.0/jdbc", {
+      replace: true,
+    });
   });
 });

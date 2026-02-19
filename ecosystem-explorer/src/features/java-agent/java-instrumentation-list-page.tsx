@@ -6,6 +6,7 @@ import {
 } from "@/features/java-agent/components/instrumentation-filter-bar.tsx";
 import { useMemo, useState } from "react";
 import { InstrumentationCard } from "@/features/java-agent/components/instrumentation-card.tsx";
+import { getInstrumentationDisplayName } from "./utils/format";
 
 export function JavaInstrumentationListPage() {
   const { data: versionsData, loading: versionsLoading } = useVersions();
@@ -30,7 +31,7 @@ export function JavaInstrumentationListPage() {
     return instrumentations.filter((instr) => {
       if (filters.search) {
         const searchLower = filters.search.toLowerCase();
-        const name = (instr.display_name || instr.name).toLowerCase();
+        const name = getInstrumentationDisplayName(instr).toLowerCase();
         const description = (instr.description || "").toLowerCase();
 
         if (!name.includes(searchLower) && !description.includes(searchLower)) {

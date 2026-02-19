@@ -150,6 +150,28 @@ describe("JavaInstrumentationListPage - Filtering", () => {
     expect(screen.getByText("Showing 1 of 4 instrumentations")).toBeInTheDocument();
   });
 
+  it("searches by formatted name when display_name is absent", async () => {
+    const user = userEvent.setup();
+    vi.mocked(useInstrumentations).mockReturnValue({
+      data: [
+        {
+          name: "redis-client-3.2.1",
+          scope: { name: "redis" },
+        },
+      ],
+      loading: false,
+      error: null,
+    });
+
+    renderPage();
+
+    const searchInput = await screen.findByPlaceholderText("Search instrumentations...");
+    await user.type(searchInput, "Redis Client");
+
+    expect(screen.getByText("Redis Client")).toBeInTheDocument();
+    expect(screen.getByText("Showing 1 of 1 instrumentations")).toBeInTheDocument();
+  });
+
   it("filters by spans telemetry", async () => {
     const user = userEvent.setup();
     renderPage();
