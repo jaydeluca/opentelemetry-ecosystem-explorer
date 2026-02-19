@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import type { InstrumentationData } from "@/types/javaagent";
 import type { FilterState } from "./instrumentation-filter-bar";
 import { FILTER_STYLES } from "../styles/filter-styles";
+import { getInstrumentationDisplayName } from "../utils/format";
 
 interface InstrumentationCardProps {
   instrumentation: InstrumentationData;
@@ -17,7 +18,7 @@ export function InstrumentationCard({
   const hasSpans = instrumentation.telemetry?.some((t) => t.spans && t.spans.length > 0);
   const hasMetrics = instrumentation.telemetry?.some((t) => t.metrics && t.metrics.length > 0);
 
-  const displayName = instrumentation.display_name || instrumentation.name;
+  const displayName = getInstrumentationDisplayName(instrumentation);
 
   const hasJavaAgentTarget =
     instrumentation.javaagent_target_versions &&

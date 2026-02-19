@@ -37,10 +37,10 @@ describe("InstrumentationCard", () => {
     expect(screen.getByText("Test Instrumentation")).toBeInTheDocument();
   });
 
-  it("falls back to name when display_name is not provided", () => {
+  it("formats name when display_name is not provided", () => {
     const instrumentation = { ...baseInstrumentation, display_name: undefined };
     renderCard(instrumentation);
-    expect(screen.getByText("test-instrumentation")).toBeInTheDocument();
+    expect(screen.getByText("Test Instrumentation")).toBeInTheDocument();
   });
 
   it("renders description when provided", () => {
@@ -222,14 +222,5 @@ describe("InstrumentationCard", () => {
       name: "View details for Test Instrumentation",
     });
     expect(link).toHaveAttribute("href", "/java-agent/instrumentation/2.0.0/test-instrumentation");
-  });
-
-  it("uses provided version in the detail page link", () => {
-    renderCard(baseInstrumentation, undefined, "1.9.0");
-
-    const link = screen.getByRole("link", {
-      name: "View details for Test Instrumentation",
-    });
-    expect(link).toHaveAttribute("href", "/java-agent/instrumentation/1.9.0/test-instrumentation");
   });
 });

@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { BackButton } from "@/components/ui/back-button";
 import { useVersions, useInstrumentation } from "@/hooks/use-javaagent-data";
+import { getInstrumentationDisplayName } from "./utils/format";
 
 export function InstrumentationDetailPage() {
   const { version, name } = useParams<{ version: string; name: string }>();
@@ -64,7 +65,7 @@ export function InstrumentationDetailPage() {
     );
   }
 
-  const displayName = instrumentation.display_name || instrumentation.name;
+  const displayName = getInstrumentationDisplayName(instrumentation);
   const showRawName =
     instrumentation.display_name && instrumentation.display_name !== instrumentation.name;
 
@@ -99,13 +100,6 @@ export function InstrumentationDetailPage() {
             <p className="text-base text-muted-foreground">{instrumentation.description}</p>
           )}
         </header>
-
-        {/* Additional sections will be added in future iterations */}
-        <div className="p-6 border border-border rounded-lg bg-muted/50">
-          <p className="text-sm text-muted-foreground text-center">
-            Additional instrumentation details will be displayed here in upcoming updates.
-          </p>
-        </div>
       </div>
     </div>
   );
