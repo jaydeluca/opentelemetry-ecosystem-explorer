@@ -35,7 +35,7 @@ export function InstrumentationCard({
   return (
     <Link
       to={detailUrl}
-      className="block p-4 border border-border rounded-lg hover:border-primary/50 transition-colors bg-card flex flex-col h-full"
+      className="p-4 border border-border rounded-lg hover:border-primary/50 transition-colors bg-card flex flex-col h-full"
       aria-label={`View details for ${displayName}`}
     >
       <div className="flex-1 space-y-3">

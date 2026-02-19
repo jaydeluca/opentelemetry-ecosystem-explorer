@@ -16,8 +16,8 @@ export function InstrumentationDetailPage() {
     loading: instrumentationLoading,
     error,
   } = useInstrumentation(
-    shouldFetchInstrumentation ? name! : "",
-    shouldFetchInstrumentation ? version! : ""
+    shouldFetchInstrumentation ? (name ?? "") : "",
+    shouldFetchInstrumentation ? (version ?? "") : ""
   );
 
   const loading = versionsLoading || instrumentationLoading;
