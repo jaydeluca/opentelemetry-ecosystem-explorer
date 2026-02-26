@@ -9,7 +9,6 @@ Automation tools for the OpenTelemetry Ecosystem Explorer project.
 
 * **collector-watcher**: Collects and aggregates metadata from OpenTelemetry Collector components
 * **java-instrumentation-watcher**: Collects and aggregates metadata from the OpenTelemetry Java Instrumentation project
-* **documentation-sync**: Synchronizes documentation with the ecosystem registry
 * **explorer-db-builder**: Builds the database for the ecosystem explorer web application
 
 ## Setup
@@ -52,9 +51,8 @@ uv run pytest ecosystem-automation/
 # Run tests for a specific package
 uv run pytest ecosystem-automation/collector-watcher/tests/
 uv run pytest ecosystem-automation/java-instrumentation-watcher/tests/
-uv run pytest ecosystem-automation/documentation-sync/tests/
 uv run pytest ecosystem-automation/explorer-db-builder/tests/
 
 # Run tests with coverage for a particular module
-uv run pytest --cov=collector_watcher --cov=documentation_sync
+uv run pytest --cov=collector_watcher --cov=collector_watcher
 ```
