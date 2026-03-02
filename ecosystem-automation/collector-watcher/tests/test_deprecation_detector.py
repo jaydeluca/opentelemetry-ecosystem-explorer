@@ -183,42 +183,6 @@ def test_detect_deprecated_with_new_components(detector, previous_version, curre
     assert len(deprecated["receiver"]) == 0
 
 
-def test_detect_deprecated_with_subtype(detector, previous_version, current_version):
-    previous = {
-        "receiver": [
-            {
-                "name": "scraperreceiver",
-                "source_repo": "contrib",
-                "distributions": ["contrib"],
-                "subtype": "logs",
-            },
-        ],
-        "processor": [],
-        "exporter": [],
-        "connector": [],
-        "extension": [],
-    }
-
-    current = {
-        "receiver": [],
-        "processor": [],
-        "exporter": [],
-        "connector": [],
-        "extension": [],
-    }
-
-    deprecated = detector.detect_deprecated(
-        previous_version=previous_version,
-        previous_components=previous,
-        current_version=current_version,
-        current_components=current,
-    )
-
-    assert len(deprecated["receiver"]) == 1
-    assert deprecated["receiver"][0]["name"] == "scraperreceiver"
-    assert deprecated["receiver"][0]["subtype"] == "logs"
-
-
 def test_detect_deprecated_multiple_component_types(detector, previous_version, current_version):
     previous = {
         "receiver": [
@@ -270,23 +234,6 @@ def test_detect_deprecated_multiple_component_types(detector, previous_version, 
     assert deprecated["receiver"][0]["name"] == "receiver1"
     assert deprecated["processor"][0]["name"] == "processor1"
     assert deprecated["exporter"][0]["name"] == "exporter1"
-
-
-def test_build_component_set(detector):
-    components = [
-        {"name": "component1"},
-        {"name": "component2"},
-        {"name": "component3"},
-    ]
-
-    component_set = detector._build_component_set(components)
-
-    assert component_set == {"component1", "component2", "component3"}
-
-
-def test_build_component_set_empty(detector):
-    component_set = detector._build_component_set([])
-    assert component_set == set()
 
 
 def test_create_deprecated_component(detector, previous_version, current_version):

@@ -66,12 +66,14 @@ class DeprecationDetector:
 
         return deprecated_components
 
-    def _build_component_set(self, components: list[dict[str, Any]]) -> set[str]:
+    @staticmethod
+    def _build_component_set(components: list[dict[str, Any]]) -> set[str]:
         """Build a set of component names."""
         return {component["name"] for component in components}
 
+    @staticmethod
     def _create_deprecated_component(
-        self, component: dict[str, Any], last_version: Version, deprecated_in_version: Version
+        component: dict[str, Any], last_version: Version, deprecated_in_version: Version
     ) -> dict[str, Any]:
         """Create deprecated component metadata."""
         return {

@@ -259,8 +259,8 @@ class InventoryManager:
 
         logger.info(f"Saved deprecations index to {deprecations_file}")
 
+    @staticmethod
     def add_deprecated_components(
-        self,
         deprecations: dict[str, dict[str, list[dict[str, Any]]]],
         distribution: DistributionName,
         new_deprecated: dict[str, list[dict[str, Any]]],
