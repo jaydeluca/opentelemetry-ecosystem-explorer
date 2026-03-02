@@ -20,6 +20,7 @@ from typing import Any
 from semantic_version import Version
 
 from .component_scanner import ComponentScanner
+from .deprecation_detector import DeprecationDetector
 from .inventory_manager import InventoryManager
 from .type_defs import DistributionName
 from .version_detector import VersionDetector
@@ -56,6 +57,10 @@ class CollectorSync:
         self.repos = repos
         self.inventory_manager = inventory_manager
         self.version_detectors = {dist: VersionDetector(path) for dist, path in repos.items()}
+        self.deprecation_detector = DeprecationDetector()
+        self.deprecations = inventory_manager.load_deprecations()
+        self.previous_versions: dict[DistributionName, Version | None] = {}
+        self.previous_components: dict[DistributionName, dict[str, list[dict[str, Any]]]] = {}
 
     @staticmethod
     def get_repository_name(distribution: DistributionName) -> str:
@@ -134,6 +139,71 @@ class CollectorSync:
         )
         logger.info("  Saved %s %s", distribution, version)
 
+    def initialize_previous_version(self, distribution: DistributionName) -> None:
+        """
+        Initialize previous version tracking for deprecation detection.
+
+        Loads the latest existing version as the "previous" version
+        for tracking what components existed before.
+
+        Args:
+            distribution: Distribution name
+        """
+        if distribution in self.previous_versions:
+            return
+
+        existing_versions = self.inventory_manager.list_versions(distribution)
+        if existing_versions:
+            latest = existing_versions[0]
+            logger.debug("Initializing previous version for %s: %s", distribution, latest)
+            inventory = self.inventory_manager.load_versioned_inventory(distribution, latest)
+            self.previous_versions[distribution] = latest
+            self.previous_components[distribution] = inventory.get("components", {})
+        else:
+            logger.debug("No previous versions found for %s", distribution)
+            self.previous_versions[distribution] = None
+            self.previous_components[distribution] = {}
+
+    def detect_and_track_deprecations(
+        self,
+        distribution: DistributionName,
+        current_version: Version,
+        current_components: dict[str, list[dict[str, Any]]],
+    ) -> None:
+        """
+        Detect deprecations for the current version and update the index.
+
+        Only tracks deprecations for official releases, not snapshots.
+
+        Args:
+            distribution: Distribution name
+            current_version: Current version being processed
+            current_components: Components from current version
+        """
+        previous_version = self.previous_versions.get(distribution)
+        previous_components = self.previous_components.get(distribution, {})
+
+        deprecated = self.deprecation_detector.detect_deprecated(
+            previous_version=previous_version,
+            previous_components=previous_components,
+            current_version=current_version,
+            current_components=current_components,
+        )
+
+        if current_version.prerelease:
+            deprecated_count = sum(len(components) for components in deprecated.values())
+            if deprecated_count > 0:
+                logger.debug(
+                    "Skipping deprecation tracking for prerelease %s: %d component(s) removed",
+                    current_version,
+                    deprecated_count,
+                )
+        else:
+            self.inventory_manager.add_deprecated_components(self.deprecations, distribution, deprecated)
+
+        self.previous_versions[distribution] = current_version
+        self.previous_components[distribution] = current_components
+
     def process_latest_release(self, distribution: DistributionName) -> Version | None:
         """
         Process the latest release version if not already tracked.
@@ -158,8 +228,10 @@ class CollectorSync:
         logger.info("")
         logger.info("Processing new release: %s %s", distribution, latest)
 
+        self.initialize_previous_version(distribution)
         components = self.scan_version(distribution, latest, checkout=True)
         self.save_version(distribution, latest, components)
+        self.detect_and_track_deprecations(distribution, latest, components)
 
         return latest
 
@@ -191,8 +263,10 @@ class CollectorSync:
         logger.info("")
         logger.info("Updating %s %s...", distribution, snapshot_version)
 
+        self.initialize_previous_version(distribution)
         components = self.scan_version(distribution, snapshot_version, checkout=True)
         self.save_version(distribution, snapshot_version, components)
+        self.detect_and_track_deprecations(distribution, snapshot_version, components)
 
         return snapshot_version
 
@@ -241,6 +315,8 @@ class CollectorSync:
         for item in summary["snapshots_updated"]:
             logger.info("  - %s: %s", item["distribution"], item["version"])
 
+        self.inventory_manager.save_deprecations(self.deprecations)
+
         return summary
 
     def backfill_versions(
@@ -277,8 +353,12 @@ class CollectorSync:
         for v in versions:
             logger.info("  - %s", v)
 
+        sorted_versions = sorted(versions)
+        self.previous_versions[distribution] = None
+        self.previous_components[distribution] = {}
+
         processed = []
-        for version in versions:
+        for version in sorted_versions:
             logger.info("")
             logger.info("Backfilling %s %s...", distribution, version)
 
@@ -288,6 +368,7 @@ class CollectorSync:
 
             components = self.scan_version(distribution, version, checkout=True)
             self.save_version(distribution, version, components)
+            self.detect_and_track_deprecations(distribution, version, components)
             processed.append(str(version))
 
         logger.info("")
@@ -330,5 +411,7 @@ class CollectorSync:
         logger.info("Total versions backfilled: %d", total_versions)
         for item in summary["backfilled"]:
             logger.info("  %s: %d versions", item["distribution"], len(item["versions_processed"]))
+
+        self.inventory_manager.save_deprecations(self.deprecations)
 
         return summary

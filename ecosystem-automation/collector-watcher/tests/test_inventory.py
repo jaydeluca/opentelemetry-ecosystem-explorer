@@ -234,3 +234,183 @@ def test_versioned_inventory_separate_distributions_stored_separately(
 
     assert core_inv["repository"] == "opentelemetry-collector"
     assert contrib_inv["repository"] == "opentelemetry-collector-contrib"
+
+
+def test_load_deprecations_nonexistent(temp_inventory_dir):
+    manager = InventoryManager(str(temp_inventory_dir))
+
+    deprecations = manager.load_deprecations()
+
+    assert "core" in deprecations
+    assert "contrib" in deprecations
+    for dist in ["core", "contrib"]:
+        for component_type in ["connector", "exporter", "extension", "processor", "receiver"]:
+            assert component_type in deprecations[dist]
+            assert deprecations[dist][component_type] == []
+
+
+def test_save_and_load_deprecations(temp_inventory_dir):
+    manager = InventoryManager(str(temp_inventory_dir))
+
+    deprecations = {
+        "core": {
+            "receiver": [
+                {
+                    "name": "examplereceiver",
+                    "last_version": "v0.139.0",
+                    "deprecated_in_version": "v0.140.0",
+                    "source_repo": "core",
+                    "distributions": ["core"],
+                    "subtype": None,
+                }
+            ],
+            "processor": [],
+            "exporter": [],
+            "connector": [],
+            "extension": [],
+        },
+        "contrib": {
+            "receiver": [],
+            "processor": [],
+            "exporter": [],
+            "connector": [],
+            "extension": [],
+        },
+    }
+
+    manager.save_deprecations(deprecations)
+
+    deprecations_file = temp_inventory_dir / "deprecations.yaml"
+    assert deprecations_file.exists()
+
+    loaded = manager.load_deprecations()
+    assert loaded["core"]["receiver"][0]["name"] == "examplereceiver"
+    assert loaded["core"]["receiver"][0]["last_version"] == "v0.139.0"
+    assert loaded["core"]["receiver"][0]["deprecated_in_version"] == "v0.140.0"
+
+
+def test_add_deprecated_components(temp_inventory_dir):
+    manager = InventoryManager(str(temp_inventory_dir))
+
+    deprecations = manager.load_deprecations()
+
+    new_deprecated = {
+        "receiver": [
+            {
+                "name": "examplereceiver",
+                "last_version": "v0.139.0",
+                "deprecated_in_version": "v0.140.0",
+                "source_repo": "core",
+                "distributions": ["core"],
+                "subtype": None,
+            }
+        ],
+        "processor": [],
+        "exporter": [],
+        "connector": [],
+        "extension": [],
+    }
+
+    manager.add_deprecated_components(deprecations, "core", new_deprecated)
+
+    assert len(deprecations["core"]["receiver"]) == 1
+    assert deprecations["core"]["receiver"][0]["name"] == "examplereceiver"
+
+
+def test_add_deprecated_components_avoid_duplicates(temp_inventory_dir):
+    manager = InventoryManager(str(temp_inventory_dir))
+
+    deprecations = {
+        "core": {
+            "receiver": [
+                {
+                    "name": "examplereceiver",
+                    "last_version": "v0.139.0",
+                    "deprecated_in_version": "v0.140.0",
+                    "source_repo": "core",
+                    "distributions": ["core"],
+                    "subtype": None,
+                }
+            ],
+            "processor": [],
+            "exporter": [],
+            "connector": [],
+            "extension": [],
+        },
+        "contrib": {
+            "receiver": [],
+            "processor": [],
+            "exporter": [],
+            "connector": [],
+            "extension": [],
+        },
+    }
+
+    new_deprecated = {
+        "receiver": [
+            {
+                "name": "examplereceiver",
+                "last_version": "v0.139.0",
+                "deprecated_in_version": "v0.140.0",
+                "source_repo": "core",
+                "distributions": ["core"],
+                "subtype": None,
+            }
+        ],
+        "processor": [],
+        "exporter": [],
+        "connector": [],
+        "extension": [],
+    }
+
+    manager.add_deprecated_components(deprecations, "core", new_deprecated)
+
+    assert len(deprecations["core"]["receiver"]) == 1
+
+
+def test_add_deprecated_components_multiple_distributions(temp_inventory_dir):
+    manager = InventoryManager(str(temp_inventory_dir))
+
+    deprecations = manager.load_deprecations()
+
+    core_deprecated = {
+        "receiver": [
+            {
+                "name": "corereceiver",
+                "last_version": "v0.139.0",
+                "deprecated_in_version": "v0.140.0",
+                "source_repo": "core",
+                "distributions": ["core"],
+                "subtype": None,
+            }
+        ],
+        "processor": [],
+        "exporter": [],
+        "connector": [],
+        "extension": [],
+    }
+
+    contrib_deprecated = {
+        "receiver": [],
+        "processor": [],
+        "exporter": [
+            {
+                "name": "contribexporter",
+                "last_version": "v0.140.1",
+                "deprecated_in_version": "v0.141.0",
+                "source_repo": "contrib",
+                "distributions": ["contrib"],
+                "subtype": None,
+            }
+        ],
+        "connector": [],
+        "extension": [],
+    }
+
+    manager.add_deprecated_components(deprecations, "core", core_deprecated)
+    manager.add_deprecated_components(deprecations, "contrib", contrib_deprecated)
+
+    assert len(deprecations["core"]["receiver"]) == 1
+    assert deprecations["core"]["receiver"][0]["name"] == "corereceiver"
+    assert len(deprecations["contrib"]["exporter"]) == 1
+    assert deprecations["contrib"]["exporter"][0]["name"] == "contribexporter"

@@ -258,3 +258,45 @@ def test_scan_version_release_checkout(collector_sync, sample_components):
             collector_sync.scan_version("core", release_version, checkout=True)
 
             mock_checkout.assert_called_once_with(release_version)
+
+
+def test_deprecations_not_tracked_for_snapshots(collector_sync):
+    previous_components = {
+        "receiver": [
+            {"name": "receiver1", "source_repo": "core", "distributions": ["core"], "subtype": None},
+            {"name": "receiver2", "source_repo": "core", "distributions": ["core"], "subtype": None},
+        ],
+        "processor": [],
+        "exporter": [],
+        "connector": [],
+        "extension": [],
+    }
+
+    current_components = {
+        "receiver": [
+            {"name": "receiver1", "source_repo": "core", "distributions": ["core"], "subtype": None},
+        ],
+        "processor": [],
+        "exporter": [],
+        "connector": [],
+        "extension": [],
+    }
+
+    release_version = Version("0.112.0")
+    snapshot_version = Version(major=0, minor=113, patch=0, prerelease=("SNAPSHOT",))
+
+    collector_sync.previous_versions["core"] = release_version
+    collector_sync.previous_components["core"] = previous_components
+
+    collector_sync.detect_and_track_deprecations("core", snapshot_version, current_components)
+
+    assert len(collector_sync.deprecations["core"]["receiver"]) == 0
+
+    collector_sync.previous_versions["core"] = release_version
+    collector_sync.previous_components["core"] = previous_components
+
+    next_release_version = Version("0.113.0")
+    collector_sync.detect_and_track_deprecations("core", next_release_version, current_components)
+
+    assert len(collector_sync.deprecations["core"]["receiver"]) == 1
+    assert collector_sync.deprecations["core"]["receiver"][0]["name"] == "receiver2"

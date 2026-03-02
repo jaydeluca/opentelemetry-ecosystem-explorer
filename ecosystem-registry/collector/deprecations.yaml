@@ -1,0 +1,12 @@
+core:
+  connector: []
+  exporter: []
+  extension: []
+  processor: []
+  receiver: []
+contrib:
+  connector: []
+  exporter: []
+  extension: []
+  processor: []
+  receiver: []
