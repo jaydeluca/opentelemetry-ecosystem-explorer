@@ -13,6 +13,7 @@ contrib:
   - name: bigipreceiver
     last_version: v0.146.0
     deprecated_in_version: v0.147.0
-    source_repo: null
-    distributions: []
+    source_repo: opentelemetry-collector-contrib
+    distributions:
+    - contrib
     subtype: null

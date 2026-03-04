@@ -116,6 +116,44 @@ class CollectorSync:
 
         return components
 
+    def _create_enriched_copy(
+        self,
+        components: dict[str, list[dict[str, Any]]],
+        repository: str,
+        distribution: DistributionName,
+    ) -> dict[str, list[dict[str, Any]]]:
+        """
+        Create an enriched copy of components for deprecation detection.
+
+        Creates a deep copy and adds:
+        - source_repo: Repository name
+        - distributions: Flattened from metadata.status.distributions
+
+        Args:
+            components: Components dictionary to copy and enrich
+            repository: Repository name
+            distribution: Distribution name
+
+        Returns:
+            Enriched copy of components
+        """
+        import copy
+
+        enriched = copy.deepcopy(components)
+
+        for component_list in enriched.values():
+            for component in component_list:
+                component["source_repo"] = repository
+
+                distributions = None
+                if "metadata" in component:
+                    status = component["metadata"].get("status", {})
+                    distributions = status.get("distributions")
+
+                component["distributions"] = list(distributions) if distributions else []
+
+        return enriched
+
     def save_version(
         self,
         distribution: DistributionName,
@@ -186,11 +224,16 @@ class CollectorSync:
         previous_version = self.previous_versions.get(distribution)
         previous_components = self.previous_components.get(distribution, {})
 
+        repository = self.get_repository_name(distribution)
+
+        enriched_current = self._create_enriched_copy(current_components, repository, distribution)
+        enriched_previous = self._create_enriched_copy(previous_components, repository, distribution)
+
         deprecated = self.deprecation_detector.detect_deprecated(
             previous_version=previous_version,
-            previous_components=previous_components,
+            previous_components=enriched_previous,
             current_version=current_version,
-            current_components=current_components,
+            current_components=enriched_current,
         )
 
         if current_version.prerelease:
