@@ -42,7 +42,7 @@ def backfill_metadata(
     3. Return: Provide backfilled inventories ready for processing
 
     Args:
-        versions: List of versions sorted oldest to newest
+        versions: List of versions (unordered)
         load_inventory_fn: Function that loads inventory for a version
         item_key: Key for items list in inventory (e.g., "libraries", "components")
 
@@ -82,7 +82,7 @@ def backfill_metadata(
                         logger.debug(
                             f"Backfilled {field} for {item_name} in {version} with value: {backfilled_value[:50]}..."
                             if len(backfilled_value) > 50
-                            else f"with value: {backfilled_value}"
+                            else f"Backfilled {field} for {item_name} in {version} with value: {backfilled_value}"
                         )
 
             backfilled_items.append(backfilled_item)
@@ -104,7 +104,7 @@ def _build_metadata_timeline(
     """Build timeline of metadata changes for all items.
 
     Args:
-        versions: List of versions sorted oldest to newest
+        versions: List of versions in any order
         load_inventory_fn: Function that loads inventory for a version
         item_key: Key for items list in inventory
         inventories: Dict to populate with loaded inventories

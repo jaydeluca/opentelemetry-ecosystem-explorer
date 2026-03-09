@@ -232,7 +232,6 @@ class TestRunBuilder:
         library_map = {"lib1": "hash1"}
 
         mock_inventory_manager.list_versions.return_value = versions
-        # Backfill will load both versions
         mock_inventory_manager.load_versioned_inventory.side_effect = [
             inventory_1_0,
             inventory_2_0,
@@ -242,8 +241,23 @@ class TestRunBuilder:
         exit_code = run_builder(mock_inventory_manager, mock_db_writer)
 
         assert exit_code == 0
-        # Verify backfill loaded inventories for both versions
         assert mock_inventory_manager.load_versioned_inventory.call_count == 2
+
+        # Verify backfilled data is written: version 1.0.0 should have display_name backfilled
+        write_calls = mock_db_writer.write_libraries.call_args_list
+        assert len(write_calls) == 2
+
+        # First call is for version 1.0.0 - should have backfilled display_name
+        libraries_v1 = write_calls[0][0][0]
+        assert len(libraries_v1) == 1
+        assert libraries_v1[0]["name"] == "lib1"
+        assert libraries_v1[0]["display_name"] == "Library 1"
+
+        # Second call is for version 2.0.0 - should have original display_name
+        libraries_v2 = write_calls[1][0][0]
+        assert len(libraries_v2) == 1
+        assert libraries_v2[0]["name"] == "lib1"
+        assert libraries_v2[0]["display_name"] == "Library 1"
 
     def test_run_builder_with_clean_false(self, mock_inventory_manager, mock_db_writer):
         """Clean is not called when clean=False."""
