@@ -49,6 +49,13 @@ export function InstrumentationBrowser() {
     );
   }, [filteredInstrumentations, state.selectedInstrumentations]);
 
+  const handleAddAll = () => {
+    dispatch({
+      type: "ADD_ALL_INSTRUMENTATIONS",
+      instrumentations: availableInstrumentations,
+    });
+  };
+
   const handleToggleInstrumentation = (instr: InstrumentationData) => {
     if (state.selectedInstrumentations.has(instr.name)) {
       dispatch({ type: "REMOVE_INSTRUMENTATION", name: instr.name });
@@ -114,9 +121,18 @@ export function InstrumentationBrowser() {
       )}
 
       <div className="space-y-2">
-        <h3 className="text-sm font-semibold text-foreground">
-          Available ({availableInstrumentations.length})
-        </h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-foreground">
+            Available ({availableInstrumentations.length})
+          </h3>
+          <button
+            onClick={handleAddAll}
+            disabled={availableInstrumentations.length === 0}
+            className="text-xs text-primary hover:text-primary/80 disabled:text-muted-foreground disabled:cursor-not-allowed"
+          >
+            Add All
+          </button>
+        </div>
         <div className="space-y-1 max-h-[400px] overflow-y-auto">
           {availableInstrumentations.length === 0 ? (
             <p className="text-sm text-muted-foreground py-4 text-center">

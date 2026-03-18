@@ -25,19 +25,6 @@ export function OutputPreview() {
     return generateYamlFile(state);
   }, [state]);
 
-  if (state.selectedInstrumentations.size === 0) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-center space-y-2">
-          <p className="text-sm text-muted-foreground">No configuration to preview</p>
-          <p className="text-xs text-muted-foreground">
-            Select instrumentations to generate output
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-end gap-2 mb-4">

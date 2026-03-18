@@ -19,6 +19,7 @@ import { useVersions } from "@/hooks/use-javaagent-data";
 import { ConfigurationBuilderProvider } from "./context/configuration-builder-context.tsx";
 import { useConfigurationBuilder } from "./hooks/use-configuration-builder";
 import { InstrumentationBrowser } from "./components/instrumentation-browser";
+import { SdkBrowser } from "./components/sdk-browser";
 import { OutputPreview } from "./components/output-preview";
 
 function ConfigurationBuilderContent() {
@@ -100,32 +101,38 @@ function ConfigurationBuilderContent() {
             role="tab"
             aria-selected={state.activeArea === "sdk"}
             aria-controls="sdk-panel"
-            aria-disabled="true"
-            disabled
-            className="px-4 py-2 font-medium border-b-2 border-transparent text-muted-foreground/50 cursor-not-allowed"
+            onClick={() => dispatch({ type: "SET_ACTIVE_AREA", area: "sdk" })}
+            className={`px-4 py-2 font-medium border-b-2 transition-colors ${
+              state.activeArea === "sdk"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
           >
-            SDK (Coming Soon)
+            SDK
           </button>
         </div>
 
-        {state.activeArea === "instrumentation" && (
-          <div
-            id="instrumentation-panel"
-            role="tabpanel"
-            aria-labelledby="instrumentation-tab"
-            className="grid grid-cols-1 lg:grid-cols-[30%_70%] gap-6 min-h-[600px]"
-          >
-            <div className="border border-border rounded-lg bg-card p-6">
-              <h2 className="text-lg font-semibold mb-4">Instrumentation Browser</h2>
-              <InstrumentationBrowser />
-            </div>
-
-            <div className="border border-border rounded-lg bg-card p-6">
-              <h2 className="text-lg font-semibold mb-4">Output Preview</h2>
-              <OutputPreview />
-            </div>
+        <div className="grid grid-cols-1 lg:grid-cols-[30%_70%] gap-6 min-h-[600px]">
+          <div className="border border-border rounded-lg bg-card p-6 overflow-y-auto">
+            {state.activeArea === "instrumentation" && (
+              <div id="instrumentation-panel" role="tabpanel" aria-labelledby="instrumentation-tab">
+                <h2 className="text-lg font-semibold mb-4">Instrumentation Browser</h2>
+                <InstrumentationBrowser />
+              </div>
+            )}
+            {state.activeArea === "sdk" && (
+              <div id="sdk-panel" role="tabpanel" aria-labelledby="sdk-tab">
+                <h2 className="text-lg font-semibold mb-4">SDK Configuration</h2>
+                <SdkBrowser />
+              </div>
+            )}
           </div>
-        )}
+
+          <div className="border border-border rounded-lg bg-card p-6">
+            <h2 className="text-lg font-semibold mb-4">Output Preview</h2>
+            <OutputPreview />
+          </div>
+        </div>
       </div>
     </div>
   );

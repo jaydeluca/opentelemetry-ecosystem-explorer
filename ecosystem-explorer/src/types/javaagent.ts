@@ -95,6 +95,7 @@ export interface ConfigurationBuilderState {
   configOverrides: Map<string, ConfigValue>;
   outputFormat: "properties" | "env";
   isInitialized: boolean;
+  sdkConfig: import("@/types/sdk").SdkConfig;
 }
 
 export interface InstrumentationConfig {
@@ -136,6 +137,16 @@ export type ConfigurationBuilderAction =
       type: "LOAD_STATE";
       state: Partial<ConfigurationBuilderState>;
     }
+  | { type: "ADD_ALL_INSTRUMENTATIONS"; instrumentations: InstrumentationData[] }
+  | { type: "LOAD_SDK_DEFAULTS"; sdkConfig: import("@/types/sdk").SdkConfig }
+  | { type: "TOGGLE_SDK_PROPAGATOR"; propagatorId: string }
+  | { type: "SET_SDK_EXPORTER_TYPE"; exporterType: string }
+  | { type: "SET_SDK_EXPORTER_ENDPOINT"; endpoint: string }
+  | { type: "SET_SDK_EXPORTER_PROTOCOL"; protocol: string }
+  | { type: "SET_SDK_SAMPLER_TYPE"; samplerType: string }
+  | { type: "SET_SDK_SAMPLER_ROOT"; root: string }
+  | { type: "SET_SDK_SAMPLER_RATIO"; ratio: number }
+  | { type: "UPDATE_SDK_BATCH_SETTING"; key: string; value: number }
   | { type: "RESET" }
   | { type: "MARK_INITIALIZED" };
 
