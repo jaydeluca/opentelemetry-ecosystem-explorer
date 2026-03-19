@@ -21,6 +21,8 @@ import { TargetVersionsSection } from "./target-versions-section";
 import { ConfigurationsSection } from "./configurations-section";
 import { TelemetrySection } from "./telemetry-section";
 import { StandaloneLibraryTab } from "./standalone-library-tab";
+import { InfoIcon } from "@/components/icons/info-icon";
+import { PackageIcon } from "@/components/icons/package-icon";
 
 interface DetailTabsProps {
   instrumentation: InstrumentationData;
@@ -30,38 +32,44 @@ interface DetailTabsProps {
 export function DetailTabs({ instrumentation, version }: DetailTabsProps) {
   return (
     <Tabs.Root defaultValue="details" className="w-full">
-      <Tabs.List className="flex gap-6 border-b border-border" aria-label="Instrumentation details">
-        <Tabs.Trigger
-          value="details"
-          className="px-1 py-3 text-sm font-medium transition-colors data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground"
-        >
-          Details
-        </Tabs.Trigger>
-        {instrumentation.has_standalone_library && (
+      <div className="bg-surface/50 rounded-t-lg border border-b-0 border-border p-1 backdrop-blur-sm">
+        <Tabs.List className="flex gap-1" aria-label="Instrumentation details">
           <Tabs.Trigger
-            value="library"
-            className="px-1 py-3 text-sm font-medium transition-colors data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground"
+            value="details"
+            className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-md transition-all data-[state=active]:shadow-md data-[state=active]:bg-background data-[state=active]:text-primary data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=inactive]:hover:bg-surface/50"
           >
-            Standalone Library
+            <InfoIcon className="h-4 w-4" />
+            Details
           </Tabs.Trigger>
-        )}
-      </Tabs.List>
+          {instrumentation.has_standalone_library && (
+            <Tabs.Trigger
+              value="library"
+              className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-md transition-all data-[state=active]:shadow-md data-[state=active]:bg-background data-[state=active]:text-primary data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=inactive]:hover:bg-surface/50"
+            >
+              <PackageIcon className="h-4 w-4" />
+              Standalone Library
+            </Tabs.Trigger>
+          )}
+        </Tabs.List>
+      </div>
 
-      <Tabs.Content value="details" className="pt-6">
-        <div className="space-y-6">
-          <LinksSection instrumentation={instrumentation} />
-          <SemanticConventionsSection instrumentation={instrumentation} />
-          <TargetVersionsSection instrumentation={instrumentation} />
-          <ConfigurationsSection instrumentation={instrumentation} />
-          <TelemetrySection instrumentation={instrumentation} />
-        </div>
-      </Tabs.Content>
-
-      {instrumentation.has_standalone_library && (
-        <Tabs.Content value="library" className="pt-6">
-          <StandaloneLibraryTab instrumentation={instrumentation} version={version} />
+      <div className="bg-surface/30 border border-border rounded-b-lg p-6">
+        <Tabs.Content value="details">
+          <div className="space-y-8">
+            <LinksSection instrumentation={instrumentation} />
+            <SemanticConventionsSection instrumentation={instrumentation} />
+            <TargetVersionsSection instrumentation={instrumentation} />
+            <ConfigurationsSection instrumentation={instrumentation} />
+            <TelemetrySection instrumentation={instrumentation} />
+          </div>
         </Tabs.Content>
-      )}
+
+        {instrumentation.has_standalone_library && (
+          <Tabs.Content value="library">
+            <StandaloneLibraryTab instrumentation={instrumentation} version={version} />
+          </Tabs.Content>
+        )}
+      </div>
     </Tabs.Root>
   );
 }

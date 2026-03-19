@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import type { InstrumentationData } from "@/types/javaagent";
+import { SectionHeader } from "./section-header";
+import { ConfigurationIcon } from "@/components/icons/configuration-icon";
 
 interface ConfigurationsSectionProps {
   instrumentation: InstrumentationData;
@@ -35,51 +37,59 @@ export function ConfigurationsSection({ instrumentation }: ConfigurationsSection
   }
 
   return (
-    <section className="py-4">
-      <h3 className="text-lg font-semibold mb-3">Configurations</h3>
+    <section className="space-y-4">
+      <SectionHeader icon={<ConfigurationIcon className="h-5 w-5" />} title="Configurations" />
 
       {/* Desktop table view (≥768px) */}
-      <div className="hidden md:block overflow-x-auto">
-        <table className="w-full border-collapse border border-border rounded-lg">
+      <div className="hidden md:block overflow-hidden rounded-lg border border-border shadow-md">
+        <table className="w-full border-collapse">
           <caption className="sr-only">Configuration options</caption>
           <thead>
-            <tr className="bg-muted/50">
+            <tr className="bg-surface border-b border-border">
               <th
                 scope="col"
-                className="border border-border px-4 py-2 text-left text-sm font-semibold"
+                className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide"
               >
                 Name
               </th>
               <th
                 scope="col"
-                className="border border-border px-4 py-2 text-left text-sm font-semibold"
+                className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide"
               >
                 Description
               </th>
               <th
                 scope="col"
-                className="border border-border px-4 py-2 text-left text-sm font-semibold"
+                className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide"
               >
                 Type
               </th>
               <th
                 scope="col"
-                className="border border-border px-4 py-2 text-left text-sm font-semibold"
+                className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide"
               >
                 Default
               </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="bg-card divide-y divide-border">
             {instrumentation.configurations.map((config, index) => (
-              <tr key={index} className="hover:bg-muted/30 transition-colors">
-                <td className="border border-border px-4 py-2 font-mono text-sm">{config.name}</td>
-                <td className="border border-border px-4 py-2 text-sm">{config.description}</td>
-                <td className="border border-border px-4 py-2 font-mono text-sm text-muted-foreground">
-                  {config.type}
+              <tr key={index} className="hover:bg-surface transition-colors">
+                <td className="px-6 py-4">
+                  <code className="text-sm font-mono bg-muted/30 px-2 py-1 rounded text-foreground">
+                    {config.name}
+                  </code>
                 </td>
-                <td className="border border-border px-4 py-2 font-mono text-sm">
-                  {formatDefaultValue(config.default)}
+                <td className="px-6 py-4 text-sm text-muted-foreground">{config.description}</td>
+                <td className="px-6 py-4">
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                    {config.type}
+                  </span>
+                </td>
+                <td className="px-6 py-4">
+                  <code className="text-sm font-mono text-foreground">
+                    {formatDefaultValue(config.default)}
+                  </code>
                 </td>
               </tr>
             ))}
@@ -88,26 +98,47 @@ export function ConfigurationsSection({ instrumentation }: ConfigurationsSection
       </div>
 
       {/* Mobile card view (<768px) */}
-      <div className="md:hidden space-y-4">
+      <div className="md:hidden space-y-3">
         {instrumentation.configurations.map((config, index) => (
-          <div key={index} className="border border-border rounded-lg p-4 space-y-2">
-            <dl className="space-y-2">
+          <div
+            key={index}
+            className="border border-border rounded-lg p-4 space-y-3 bg-card shadow-sm hover:shadow-md transition-shadow"
+          >
+            <dl className="space-y-3">
               <div>
-                <dt className="text-xs font-medium text-muted-foreground">Name</dt>
-                <dd className="font-mono text-sm mt-1">{config.name}</dd>
+                <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                  Name
+                </dt>
+                <dd>
+                  <code className="text-sm font-mono bg-muted/30 px-2 py-1 rounded text-foreground">
+                    {config.name}
+                  </code>
+                </dd>
               </div>
               <div>
-                <dt className="text-xs font-medium text-muted-foreground">Description</dt>
-                <dd className="text-sm mt-1">{config.description}</dd>
+                <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                  Description
+                </dt>
+                <dd className="text-sm text-muted-foreground">{config.description}</dd>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <dt className="text-xs font-medium text-muted-foreground">Type</dt>
-                  <dd className="font-mono text-sm text-muted-foreground mt-1">{config.type}</dd>
+                  <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                    Type
+                  </dt>
+                  <dd>
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                      {config.type}
+                    </span>
+                  </dd>
                 </div>
                 <div>
-                  <dt className="text-xs font-medium text-muted-foreground">Default</dt>
-                  <dd className="font-mono text-sm mt-1">{formatDefaultValue(config.default)}</dd>
+                  <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                    Default
+                  </dt>
+                  <dd className="font-mono text-sm text-foreground">
+                    {formatDefaultValue(config.default)}
+                  </dd>
                 </div>
               </div>
             </dl>

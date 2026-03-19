@@ -29,6 +29,11 @@ export interface Theme {
     cardSecondary: string;
     mutedForeground: string;
     border: string;
+    success: string;
+    info: string;
+    accent1: string;
+    surface: string;
+    surfaceElevated: string;
   };
 }
 
@@ -46,6 +51,11 @@ export const themes: Record<ThemeId, Theme> = {
       cardSecondary: "232 32% 23%", // Hover state
       mutedForeground: "220 22% 65%", // Muted text
       border: "232 28% 26%", // Borders
+      success: "142 71% 45%", // Green for metrics
+      info: "217 91% 60%", // Blue for spans
+      accent1: "280 65% 60%", // Purple for library
+      surface: "232 34% 21%", // Elevated surface
+      surfaceElevated: "232 30% 25%", // Higher elevation
     },
   },
 };

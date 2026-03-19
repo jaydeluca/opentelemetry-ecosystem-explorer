@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import type { InstrumentationData } from "@/types/javaagent";
+import { SectionHeader } from "./section-header";
+import { PipelineIcon } from "@/components/icons/pipeline-icon";
 
 interface TargetVersionsSectionProps {
   instrumentation: InstrumentationData;
@@ -30,19 +32,22 @@ export function TargetVersionsSection({ instrumentation }: TargetVersionsSection
   }
 
   return (
-    <section className="py-4">
-      <h3 className="text-lg font-semibold mb-3">Target Versions</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <section className="space-y-4">
+      <SectionHeader icon={<PipelineIcon className="h-5 w-5" />} title="Target Versions" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {instrumentation.javaagent_target_versions &&
           instrumentation.javaagent_target_versions.length > 0 && (
             <div>
-              <h4 className="text-sm font-medium text-muted-foreground mb-2">
+              <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
                 Javaagent Target Versions
               </h4>
-              <ul className="space-y-1">
+              <ul className="space-y-2">
                 {instrumentation.javaagent_target_versions.map((version, index) => (
-                  <li key={index} className="text-sm text-muted-foreground flex items-center">
-                    <span className="mr-2 text-primary">•</span>
+                  <li
+                    key={index}
+                    className="text-sm flex items-center gap-2 p-2 rounded bg-muted/20 border border-border"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                     <span className="font-mono text-foreground">{version}</span>
                   </li>
                 ))}
@@ -52,12 +57,14 @@ export function TargetVersionsSection({ instrumentation }: TargetVersionsSection
 
         {instrumentation.minimum_java_version && (
           <div>
-            <h4 className="text-sm font-medium text-muted-foreground mb-2">Minimum Java Version</h4>
-            <p className="text-sm">
-              <span className="font-mono text-foreground">
+            <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+              Minimum Java Version
+            </h4>
+            <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
+              <span className="font-mono text-base text-blue-400 font-semibold">
                 Java {instrumentation.minimum_java_version}+
               </span>
-            </p>
+            </div>
           </div>
         )}
       </div>

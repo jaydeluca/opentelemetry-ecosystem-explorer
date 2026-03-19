@@ -21,6 +21,7 @@ import { getInstrumentationDisplayName } from "./utils/format";
 import { getBadgeInfo } from "./utils/badge-info";
 import { QuickInfoCard } from "./components/quick-info-card";
 import { DetailTabs } from "./components/detail-tabs";
+import { JavaInstrumentationIcon } from "@/components/icons/java-instrumentation-icon";
 
 export function InstrumentationDetailPage() {
   const { version, name } = useParams<{ version: string; name: string }>();
@@ -80,40 +81,50 @@ export function InstrumentationDetailPage() {
   const badges = getBadgeInfo(instrumentation);
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-12">
-      <BackButton />
+    <div className="min-h-screen bg-background">
+      <div className="relative bg-gradient-to-br from-card via-background to-background border-b border-border/50">
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          <BackButton />
+          <div className="mt-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <JavaInstrumentationIcon className="h-10 w-10 text-primary" />
+              <h1 className="text-4xl font-bold text-foreground">{displayName}</h1>
+            </div>
 
-      <div className="mt-6 space-y-6">
-        <header className="space-y-3">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <h1 className="text-3xl font-bold text-foreground">{displayName}</h1>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground font-medium uppercase tracking-wide">
+                  Version
+                </span>
+                <span className="px-4 py-1.5 bg-gradient-to-r from-primary/20 to-primary/10 text-primary rounded-lg text-sm font-semibold border border-primary/30 shadow-sm">
+                  {version}
+                </span>
+              </div>
               {showRawName && (
-                <p className="mt-2 text-sm text-muted-foreground">
-                  <span className="font-medium">Instrumentation Name:</span>{" "}
-                  <code className="px-2 py-1 bg-muted rounded text-foreground">
+                <div className="text-sm text-muted-foreground">
+                  <span className="font-medium">Name:</span>{" "}
+                  <code className="px-2 py-1 bg-muted/30 rounded text-foreground font-mono text-xs">
                     {instrumentation.name}
                   </code>
-                </p>
+                </div>
               )}
             </div>
 
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <span className="text-sm text-muted-foreground font-medium">Version:</span>
-              <span className="px-3 py-1 bg-primary/10 text-primary rounded-md text-sm font-medium">
-                {version}
-              </span>
-            </div>
+            {instrumentation.description && (
+              <p className="text-base text-muted-foreground max-w-4xl">
+                {instrumentation.description}
+              </p>
+            )}
           </div>
+        </div>
+      </div>
 
-          {instrumentation.description && (
-            <p className="text-base text-muted-foreground">{instrumentation.description}</p>
-          )}
-        </header>
-
+      <div className="max-w-7xl mx-auto px-6 py-8">
         <QuickInfoCard instrumentation={instrumentation} badges={badges} />
 
-        <DetailTabs instrumentation={instrumentation} version={version ?? ""} />
+        <div className="mt-8">
+          <DetailTabs instrumentation={instrumentation} version={version ?? ""} />
+        </div>
       </div>
     </div>
   );

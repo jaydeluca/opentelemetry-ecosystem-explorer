@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ExternalLink } from "lucide-react";
 import type { InstrumentationData } from "@/types/javaagent";
+import { SectionHeader } from "./section-header";
+import { LinkCard } from "./link-card";
+import { LinkIcon } from "@/components/icons/link-icon";
+import { GithubIcon } from "@/components/icons/github-icon";
+import { BookOpenIcon } from "@/components/icons/book-open-icon";
 
 interface LinksSectionProps {
   instrumentation: InstrumentationData;
@@ -31,32 +35,24 @@ export function LinksSection({ instrumentation }: LinksSectionProps) {
   }
 
   return (
-    <section className="py-4">
-      <h3 className="text-lg font-semibold mb-3">Links</h3>
-      <div className="flex flex-wrap gap-4">
+    <section className="space-y-4">
+      <SectionHeader icon={<LinkIcon className="h-5 w-5" />} title="Links" />
+      <div className="grid gap-3">
         {instrumentation.source_path && (
-          <a
+          <LinkCard
             href={`${GITHUB_BASE_URL}/${instrumentation.source_path}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-primary hover:underline"
-            aria-label="View source code on GitHub (opens in new tab)"
-          >
-            <ExternalLink className="h-4 w-4" aria-hidden="true" />
-            Source Code
-          </a>
+            icon={<GithubIcon className="h-5 w-5" />}
+            label="Source Code"
+            description="View the instrumentation source code on GitHub"
+          />
         )}
         {instrumentation.library_link && (
-          <a
+          <LinkCard
             href={instrumentation.library_link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-primary hover:underline"
-            aria-label="View library documentation (opens in new tab)"
-          >
-            <ExternalLink className="h-4 w-4" aria-hidden="true" />
-            Library
-          </a>
+            icon={<BookOpenIcon className="h-5 w-5" />}
+            label="Library Documentation"
+            description="Read the official library documentation"
+          />
         )}
       </div>
     </section>

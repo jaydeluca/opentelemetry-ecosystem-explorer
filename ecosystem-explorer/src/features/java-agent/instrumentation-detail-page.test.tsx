@@ -131,9 +131,9 @@ describe("InstrumentationDetailPage", () => {
 
     expect(screen.getByRole("heading", { name: "JDBC", level: 1 })).toBeInTheDocument();
     expect(screen.getByText("Instrumentation for JDBC database connections")).toBeInTheDocument();
-    expect(screen.getByText("Instrumentation Name:")).toBeInTheDocument();
+    expect(screen.getByText("Name:")).toBeInTheDocument();
     expect(screen.getByText("jdbc")).toBeInTheDocument();
-    expect(screen.getByText("Version:")).toBeInTheDocument();
+    expect(screen.getByText("Version")).toBeInTheDocument();
     expect(screen.getAllByText("2.0.0")[0]).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Back" })).toBeInTheDocument();
   });

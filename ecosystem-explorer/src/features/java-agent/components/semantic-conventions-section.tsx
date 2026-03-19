@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import type { InstrumentationData } from "@/types/javaagent";
+import { SectionHeader } from "./section-header";
+import { TagIcon } from "@/components/icons/tag-icon";
 
 interface SemanticConventionsSectionProps {
   instrumentation: InstrumentationData;
@@ -25,15 +27,16 @@ export function SemanticConventionsSection({ instrumentation }: SemanticConventi
   }
 
   return (
-    <section className="py-4">
-      <h3 className="text-lg font-semibold mb-3">Semantic Conventions</h3>
-      <div className="flex flex-wrap gap-2">
+    <section className="space-y-4">
+      <SectionHeader icon={<TagIcon className="h-5 w-5" />} title="Semantic Conventions" />
+      <div className="flex flex-wrap gap-3">
         {instrumentation.semantic_conventions.map((convention) => (
           <span
             key={convention}
-            className="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium bg-primary/10 border border-primary/30 text-primary"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/30 text-primary shadow-sm hover:shadow-md hover:border-primary/50 transition-all"
             aria-label={`Semantic convention: ${convention}`}
           >
+            <div className="w-1.5 h-1.5 rounded-full bg-primary" />
             {convention}
           </span>
         ))}
