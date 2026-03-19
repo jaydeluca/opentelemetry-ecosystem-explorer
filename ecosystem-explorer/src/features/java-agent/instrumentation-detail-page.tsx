@@ -18,6 +18,9 @@ import { useEffect } from "react";
 import { BackButton } from "@/components/ui/back-button";
 import { useVersions, useInstrumentation } from "@/hooks/use-javaagent-data";
 import { getInstrumentationDisplayName } from "./utils/format";
+import { getBadgeInfo } from "./utils/badge-info";
+import { QuickInfoCard } from "./components/quick-info-card";
+import { DetailTabs } from "./components/detail-tabs";
 
 export function InstrumentationDetailPage() {
   const { version, name } = useParams<{ version: string; name: string }>();
@@ -74,6 +77,7 @@ export function InstrumentationDetailPage() {
   const displayName = getInstrumentationDisplayName(instrumentation);
   const showRawName =
     instrumentation.display_name && instrumentation.display_name !== instrumentation.name;
+  const badges = getBadgeInfo(instrumentation);
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
@@ -106,6 +110,10 @@ export function InstrumentationDetailPage() {
             <p className="text-base text-muted-foreground">{instrumentation.description}</p>
           )}
         </header>
+
+        <QuickInfoCard instrumentation={instrumentation} badges={badges} />
+
+        <DetailTabs instrumentation={instrumentation} version={version ?? ""} />
       </div>
     </div>
   );

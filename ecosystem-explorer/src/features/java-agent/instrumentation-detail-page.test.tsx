@@ -134,7 +134,7 @@ describe("InstrumentationDetailPage", () => {
     expect(screen.getByText("Instrumentation Name:")).toBeInTheDocument();
     expect(screen.getByText("jdbc")).toBeInTheDocument();
     expect(screen.getByText("Version:")).toBeInTheDocument();
-    expect(screen.getByText("2.0.0")).toBeInTheDocument();
+    expect(screen.getAllByText("2.0.0")[0]).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Back" })).toBeInTheDocument();
   });
 
