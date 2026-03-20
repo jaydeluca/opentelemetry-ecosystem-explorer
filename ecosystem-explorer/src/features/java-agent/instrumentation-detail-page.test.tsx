@@ -131,11 +131,14 @@ describe("InstrumentationDetailPage", () => {
 
     expect(screen.getByRole("heading", { name: "JDBC", level: 1 })).toBeInTheDocument();
     expect(screen.getByText("Instrumentation for JDBC database connections")).toBeInTheDocument();
-    expect(screen.getByText("Instrumentation Name:")).toBeInTheDocument();
-    expect(screen.getByText("jdbc")).toBeInTheDocument();
-    expect(screen.getByText("Version:")).toBeInTheDocument();
-    expect(screen.getByText("2.0.0")).toBeInTheDocument();
+    expect(screen.getByText("Scope Name:")).toBeInTheDocument();
+    expect(screen.getAllByText("jdbc").length).toBeGreaterThan(0);
+    expect(screen.getByText("Agent Version:")).toBeInTheDocument();
+    expect(screen.getAllByText("2.0.0").length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: "Back" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Details" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Telemetry" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Configuration" })).toBeInTheDocument();
   });
 
   it("does not fetch instrumentation when version is 'latest'", () => {
