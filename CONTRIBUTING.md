@@ -17,7 +17,7 @@ Get running in 5 minutes:
 git clone https://github.com/YOUR_USERNAME/opentelemetry-ecosystem-explorer.git
 cd opentelemetry-ecosystem-explorer
 uv sync --all-groups && npm install
-cd ecosystem-explorer && npm run dev
+cd ecosystem-explorer && npm run serve
 # Visit http://localhost:5173
 ```
 
