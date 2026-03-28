@@ -16,10 +16,11 @@
 import { JavaIcon } from "@/components/icons/java-icon";
 import { PipelineIcon } from "@/components/icons/pipeline-icon";
 import { NavigationCard } from "@/components/ui/navigation-card";
+import { SectionHeader } from "@/components/ui/section-header.tsx";
 
 export function ExploreSection() {
   return (
-    <section className="relative bg-background px-6 py-12">
+    <section className="relative bg-background px-6">
       {/* Subtle ambient glow at top */}
       <div
         className="pointer-events-none absolute left-1/2 top-0 h-64 w-full max-w-3xl -translate-x-1/2 -translate-y-16"
@@ -32,21 +33,7 @@ export function ExploreSection() {
       <div className="relative mx-auto max-w-6xl">
         {/* Section label with decorative lines */}
         <div className="mb-8 flex items-center justify-center gap-4">
-          <div
-            className="h-px w-16"
-            style={{
-              background: "linear-gradient(to right, transparent, hsl(var(--color-border)))",
-            }}
-          />
-          <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
-            Explore
-          </h2>
-          <div
-            className="h-px w-16"
-            style={{
-              background: "linear-gradient(to left, transparent, hsl(var(--color-border)))",
-            }}
-          />
+          <SectionHeader>Explore</SectionHeader>
         </div>
 
         {/* Navigation cards */}

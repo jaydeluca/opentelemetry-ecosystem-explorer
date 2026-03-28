@@ -32,7 +32,7 @@ export function NavigationCard({ title, description, href, icon }: NavigationCar
     <Link to={href} className="group block h-full">
       <div className="relative overflow-hidden rounded-lg border border-border/60 bg-card/80 p-8 h-full transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 hover:bg-card hover:shadow-xl hover:shadow-primary/15">
         {/* Grid lines background */}
-        <div className="absolute inset-0 opacity-8">
+        <div className="absolute inset-0 opacity-10">
           <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id={patternId} width="20" height="20" patternUnits="userSpaceOnUse">

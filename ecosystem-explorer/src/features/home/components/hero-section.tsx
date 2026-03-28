@@ -17,7 +17,7 @@ import { Compass } from "@/components/icons/compass";
 
 export function HeroSection() {
   return (
-    <section className="relative flex items-center justify-center overflow-hidden bg-background py-12 md:py-16">
+    <section className="relative flex items-center justify-center overflow-hidden bg-background py-12 md:py-12">
       {/* Ambient radial gradient background */}
       <div
         className="absolute inset-0"

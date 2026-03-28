@@ -66,10 +66,9 @@ export function InstrumentationDetailPage() {
         <div className="flex min-h-[400px] items-center justify-center">
           <div className="text-center">
             <div
-              className="inline-flex rounded-full p-4"
+              className="inline-flex rounded-full p-4 animate-pulse"
               style={{
                 boxShadow: "0 0 60px hsl(var(--color-primary) / 0.2)",
-                animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
               }}
             >
               <Loader2 className="h-12 w-12 animate-spin text-primary" aria-hidden="true" />

@@ -34,14 +34,14 @@ export function DetailCard({
 
   return (
     <div
-      className={`relative overflow-hidden rounded-lg border border-border/60 bg-card/80 p-6 ${
+      className={`group relative overflow-hidden rounded-lg border border-border/60 bg-card/80 p-6 ${
         withHoverEffect
           ? "transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-card hover:shadow-lg hover:shadow-primary/10"
           : ""
       } ${className}`}
     >
       {withGrid && (
-        <div className="absolute inset-0 opacity-8">
+        <div className="absolute inset-0 opacity-10">
           <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id={patternId} width="20" height="20" patternUnits="userSpaceOnUse">
@@ -62,7 +62,7 @@ export function DetailCard({
       <div className="relative z-10">{children}</div>
 
       {withCornerAccent && (
-        <div className="absolute -bottom-1 -right-1 h-16 w-16 opacity-0 transition-all duration-300 hover:scale-110 hover:opacity-100">
+        <div className="pointer-events-none absolute -bottom-1 -right-1 h-16 w-16 opacity-0 transition-all duration-300 group-hover:scale-110 group-hover:opacity-100">
           <svg viewBox="0 0 64 64" className="h-full w-full">
             <path
               d="M64 64 L64 32 L48 32 L48 48 L32 48 L32 64 Z"
