@@ -33,6 +33,17 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { useVersions, useInstrumentation } from "@/hooks/use-javaagent-data";
 import { getInstrumentationDisplayName } from "./utils/format";
 
+function buildSourceUrl(sourcePath: string): string {
+  try {
+    new URL(sourcePath);
+    return sourcePath;
+  } catch {
+    const baseUrl =
+      "https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/";
+    return new URL(sourcePath, baseUrl).toString();
+  }
+}
+
 export function InstrumentationDetailPage() {
   const { version, name } = useParams<{ version: string; name: string }>();
   const navigate = useNavigate();
@@ -250,10 +261,7 @@ export function InstrumentationDetailPage() {
                               Source Path
                             </h3>
                             <a
-                              href={
-                                "https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/" +
-                                instrumentation.source_path
-                              }
+                              href={buildSourceUrl(instrumentation.source_path)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="break-all text-sm text-primary hover:underline"

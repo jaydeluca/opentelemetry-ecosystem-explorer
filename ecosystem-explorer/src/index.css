@@ -32,9 +32,6 @@
   --color-card-secondary: hsl(var(--color-card-secondary));
   --color-muted-foreground: hsl(var(--color-muted-foreground));
   --color-border: hsl(var(--color-border));
-
-  --glow-primary: 0 0 40px hsl(var(--color-primary) / 0.15);
-  --glow-secondary: 0 0 40px hsl(var(--color-secondary) / 0.15);
 }
 
 * {
@@ -54,4 +51,13 @@ body {
 
 #root {
   min-height: 100vh;
+}
+
+/* Tab trigger border color override */
+[role="tab"] {
+  border-top-color: transparent !important;
+}
+
+[role="tab"][data-state="active"] {
+  border-top-color: hsl(var(--color-primary)) !important;
 }

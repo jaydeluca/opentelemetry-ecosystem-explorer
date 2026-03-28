@@ -16,7 +16,6 @@
 import { JavaIcon } from "@/components/icons/java-icon";
 import { PipelineIcon } from "@/components/icons/pipeline-icon";
 import { NavigationCard } from "@/components/ui/navigation-card";
-import { SectionHeader } from "@/components/ui/section-header.tsx";
 
 export function ExploreSection() {
   return (
@@ -31,11 +30,6 @@ export function ExploreSection() {
       />
 
       <div className="relative mx-auto max-w-6xl">
-        {/* Section label with decorative lines */}
-        <div className="mb-8 flex items-center justify-center gap-4">
-          <SectionHeader>Explore</SectionHeader>
-        </div>
-
         {/* Navigation cards */}
         <div className="grid gap-6 md:grid-cols-2">
           <NavigationCard

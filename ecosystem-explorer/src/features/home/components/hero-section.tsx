@@ -17,7 +17,7 @@ import { Compass } from "@/components/icons/compass";
 
 export function HeroSection() {
   return (
-    <section className="relative flex items-center justify-center overflow-hidden bg-background py-12 md:py-12">
+    <section className="relative flex items-center justify-center overflow-hidden bg-background py-12">
       {/* Ambient radial gradient background */}
       <div
         className="absolute inset-0"
@@ -68,7 +68,7 @@ export function HeroSection() {
 
       {/* Bottom fade transition */}
       <div
-        className="absolute bottom-0 left-0 right-0 h-64"
+        className="pointer-events-none absolute bottom-0 left-0 right-0 h-64"
         style={{
           background:
             "linear-gradient(to top, hsl(var(--color-background)) 0%, hsl(var(--color-background) / 0.6) 30%, transparent 100%)",
