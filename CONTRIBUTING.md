@@ -11,8 +11,6 @@ contributions. If you're new to open source or OpenTelemetry, don't hesitate to 
 
 ## Quick Start
 
-Get running in 5 minutes:
-
 ```bash
 git clone https://github.com/YOUR_USERNAME/opentelemetry-ecosystem-explorer.git
 cd opentelemetry-ecosystem-explorer
