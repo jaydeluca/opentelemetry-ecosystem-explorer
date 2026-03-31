@@ -22,20 +22,6 @@ with TypeScript, React 19, and Vite.
 IMPORTANT: reference ecosystem-explorer/DESIGN.md for detailed architecture and development guidelines for the explorer
 component.
 
-#### Development Commands
-
-From the `ecosystem-explorer/` directory:
-
-```bash
-bun install          # Install dependencies
-bun run serve        # Start development server
-bun run build        # Type check and build for production
-bun run preview      # Preview production build
-bun run lint         # Run ESLint
-bun run test         # Run tests once
-bun run test:watch   # Run tests in watch mode
-```
-
 #### Architecture
 
 **UI Framework**: React 19 with Vite for fast development and building. Uses SWC for fast TypeScript compilation.
@@ -49,7 +35,7 @@ use `@/` for imports within the src directory (e.g., `@/components/hero-section.
 **Testing**: Vitest with jsdom environment and React Testing Library. Test setup file at `src/test/setup.ts` imports
 jest-dom matchers.
 
-**Current Structure**: Landing page with navigation to two main areas:
+**Website Structure**: Landing page with navigation to two main areas:
 
 * `/java-agent`: Java Agent instrumentation explorer
 * `/collector`: Collector component explorer
