@@ -205,6 +205,14 @@ uv run pytest -k "test_pattern"
 
 ## Contributing Rules
 
+### AI Usage
+
+AI tools can be used to assist with code generation, documentation, and other tasks related to this project. However,
+all contributions must be reviewed and tested by a human before submission.
+
+When working on UI elements, ensure that your agents reference the `ecosystem-explorer/DESIGN.md` document for detailed
+guidelines to help ensure consistency and quality across the project.
+
 ### Code Standards
 
 * **Follow the style guide**: Install pre-commit hooks to catch issues before committing
