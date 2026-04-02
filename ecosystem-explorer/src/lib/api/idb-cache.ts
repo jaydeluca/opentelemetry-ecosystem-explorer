@@ -96,7 +96,7 @@ export async function getCached<T>(key: string, store: StoreName): Promise<T | n
 
     return (entry as CacheEntry<T>).data;
   } catch (error) {
-    console.error(`Failed to get cached data for ${key}:`, error);
+    console.error(`Failed to get cached data for %s:`, key, error);
     return null;
   }
 }
@@ -113,7 +113,7 @@ export async function setCached<T>(key: string, data: T, store: StoreName): Prom
 
     await db.put(store, entry);
   } catch (error) {
-    console.error(`Failed to cache data for ${key}:`, error);
+    console.error(`Failed to cache data for %s:`, key, error);
   }
 }
 
