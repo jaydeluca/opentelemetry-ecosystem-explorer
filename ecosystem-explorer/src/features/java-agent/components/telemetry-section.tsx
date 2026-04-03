@@ -29,8 +29,12 @@ export function TelemetrySection({ telemetry }: TelemetrySectionProps) {
 
   const currentTelemetry = telemetry.find((t) => t.when === selectedWhen);
 
+  const hasMetrics = currentTelemetry?.metrics && currentTelemetry.metrics.length > 0;
+  const hasSpans = currentTelemetry?.spans && currentTelemetry.spans.length > 0;
+  const hasBothMetricsAndSpans = hasMetrics && hasSpans;
+
   return (
-    <div className="space-y-8 mt-10">
+    <div className="space-y-8">
       {/* Configuration Selector - only show if multiple conditions exist */}
       {telemetry.length > 1 && (
         <ConfigurationSelector
@@ -40,102 +44,105 @@ export function TelemetrySection({ telemetry }: TelemetrySectionProps) {
         />
       )}
 
-      {/* Metrics Section */}
-      {currentTelemetry?.metrics && currentTelemetry.metrics.length > 0 && (
-        <div>
-          <SectionDivider>Metrics</SectionDivider>
-          <div className="mx-auto max-w-3xl space-y-8">
-            {currentTelemetry.metrics.map((metric, index) => (
-              <div
-                key={index}
-                className="rounded-2xl border border-border/30 bg-card/30 p-6 md:p-10"
-              >
-                <div className="space-y-6">
-                  {/* Metric name and type badge */}
-                  <div className="flex items-start justify-between gap-4">
-                    <code className="flex-1 break-all font-mono text-xl font-semibold text-foreground">
-                      {metric.name}
-                    </code>
-                    <GlowBadge variant="success" withGlow className="text-[10px]">
-                      {metric.type}
-                    </GlowBadge>
-                  </div>
+      <div className={hasBothMetricsAndSpans ? "grid grid-cols-1 lg:grid-cols-2 gap-8" : ""}>
+        {/* Metrics Section */}
+        {hasMetrics && (
+          <div>
+            <SectionDivider>Metrics</SectionDivider>
+            <div className={hasBothMetricsAndSpans ? "space-y-8" : "mx-auto max-w-3xl space-y-8"}>
+              {currentTelemetry.metrics &&
+                currentTelemetry.metrics.map((metric, index) => (
+                  <div
+                    key={index}
+                    className="rounded-2xl border border-border/30 bg-card/30 p-6 md:p-10"
+                  >
+                    <div className="space-y-6">
+                      {/* Metric name and type badge */}
+                      <div className="flex items-start justify-between gap-4">
+                        <code className="flex-1 break-all font-mono text-l font-semibold text-foreground">
+                          {metric.name}
+                        </code>
+                        <GlowBadge variant="success" withGlow className="text-[10px]">
+                          {metric.type}
+                        </GlowBadge>
+                      </div>
 
-                  {/* Description */}
-                  <p className="text-base leading-relaxed text-foreground/80 md:text-lg">
-                    {metric.description}
-                  </p>
+                      {/* Description */}
+                      <p className="text-base leading-relaxed text-foreground/80 md:text">
+                        {metric.description}
+                      </p>
 
-                  {/* Unit section with border */}
-                  <div className="flex items-center gap-3 border-b border-border/30 pb-6">
-                    <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                      Unit
-                    </span>
-                    <code className="rounded bg-muted px-2 py-1 text-sm">{metric.unit}</code>
-                  </div>
+                      {/* Unit section with border */}
+                      <div className="flex items-center gap-3 border-b border-border/30 pb-6">
+                        <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                          Unit
+                        </span>
+                        <code className="rounded bg-muted px-2 py-1 text-sm">{metric.unit}</code>
+                      </div>
 
-                  {/* Attributes section */}
-                  {metric.attributes && metric.attributes.length > 0 && (
-                    <div className="space-y-4">
-                      <h4 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
-                        Attributes
-                      </h4>
-                      <AttributeTable attributes={metric.attributes} />
+                      {/* Attributes section */}
+                      {metric.attributes && metric.attributes.length > 0 && (
+                        <div className="space-y-4">
+                          <h4 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+                            Attributes
+                          </h4>
+                          <AttributeTable attributes={metric.attributes} />
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Spans Section */}
-      {currentTelemetry?.spans && currentTelemetry.spans.length > 0 && (
-        <div>
-          <SectionDivider>Spans</SectionDivider>
-          <div className="mx-auto max-w-3xl space-y-8">
-            {currentTelemetry.spans.map((span, index) => (
-              <div
-                key={index}
-                className="rounded-2xl border border-border/30 bg-card/30 p-6 md:p-10"
-              >
-                <div className="space-y-6">
-                  {/* Span kind badge */}
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xl font-bold text-foreground md:text-2xl">
-                      {span.span_kind} Span
-                    </h3>
-                    <GlowBadge variant="info" withGlow className="text-xs">
-                      {span.span_kind}
-                    </GlowBadge>
                   </div>
-
-                  {/* Attributes section */}
-                  {span.attributes && span.attributes.length > 0 && (
-                    <div className="space-y-4">
-                      <h4 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
-                        Attributes
-                      </h4>
-                      <AttributeTable attributes={span.attributes} />
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Empty state */}
-      {(!currentTelemetry?.metrics || currentTelemetry.metrics.length === 0) &&
-        (!currentTelemetry?.spans || currentTelemetry.spans.length === 0) && (
-          <div className="flex min-h-[200px] items-center justify-center">
-            <p className="text-sm text-muted-foreground">
-              No metrics or spans defined for this configuration.
-            </p>
+                ))}
+            </div>
           </div>
         )}
+
+        {/* Spans Section */}
+        {hasSpans && (
+          <div>
+            <SectionDivider>Spans</SectionDivider>
+            <div className={hasBothMetricsAndSpans ? "space-y-8" : "mx-auto max-w-3xl space-y-8"}>
+              {currentTelemetry.spans &&
+                currentTelemetry.spans.map((span, index) => (
+                  <div
+                    key={index}
+                    className="rounded-2xl border border-border/30 bg-card/30 p-6 md:p-10"
+                  >
+                    <div className="space-y-6">
+                      {/* Span kind badge */}
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-l font-bold text-foreground md:text-xl">
+                          {span.span_kind} Span
+                        </h3>
+                        <GlowBadge variant="info" withGlow className="text-xs">
+                          {span.span_kind}
+                        </GlowBadge>
+                      </div>
+
+                      {/* Attributes section */}
+                      {span.attributes && span.attributes.length > 0 && (
+                        <div className="space-y-4">
+                          <h4 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+                            Attributes
+                          </h4>
+                          <AttributeTable attributes={span.attributes} />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Empty state */}
+      {!hasMetrics && !hasSpans && (
+        <div className="flex min-h-[200px] items-center justify-center">
+          <p className="text-sm text-muted-foreground">
+            No metrics or spans defined for this configuration.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

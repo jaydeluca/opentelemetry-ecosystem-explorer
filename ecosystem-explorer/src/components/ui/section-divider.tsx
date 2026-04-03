@@ -23,7 +23,7 @@ export function SectionDivider({ children }: SectionDividerProps) {
   return (
     <div className="my-12 flex items-center">
       <div className="flex-1 border-b-2 border-border/30" />
-      <span className="px-8 text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
+      <span className="px-8 text font-bold uppercase tracking-[0.2em] text-muted-foreground">
         {children}
       </span>
       <div className="flex-1 border-b-2 border-border/30" />

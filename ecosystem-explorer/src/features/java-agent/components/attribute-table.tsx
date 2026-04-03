@@ -55,11 +55,11 @@ export function AttributeTable({ attributes }: AttributeTableProps) {
             index % 2 === 1 ? "bg-white/[0.02]" : ""
           }`}
         >
-          <div role="cell" className="col-span-8 font-mono text-sm md:text-[15px]">
+          <div role="cell" className="col-span-8 font-mono text-sm md:text-[12px]">
             {attr.name}
           </div>
           <div role="cell" className="col-span-4">
-            <span className="col-span-4 text-xs font-bold text-slate-300 bg-slate-800/50 py-1 px-2 rounded inline-block w-fit">
+            <span className="col-span-4 inline-block w-fit rounded bg-muted px-2 py-1 text-xs font-bold text-muted-foreground bg-slate-800">
               {attr.type}
             </span>
           </div>

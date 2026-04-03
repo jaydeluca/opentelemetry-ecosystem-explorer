@@ -203,259 +203,279 @@ export function InstrumentationDetailPage() {
           </div>
         </header>
 
-        <Tabs defaultValue="details" className="w-full">
-          <TabsList>
-            <TabsTrigger value="details">
-              <Info className="h-4 w-4" aria-hidden="true" />
-              Details
-            </TabsTrigger>
-            <TabsTrigger value="telemetry">
-              <Activity className="h-4 w-4" aria-hidden="true" />
-              Telemetry
-            </TabsTrigger>
-            <TabsTrigger value="configuration">
-              <Settings className="h-4 w-4" aria-hidden="true" />
-              Configuration
-            </TabsTrigger>
-          </TabsList>
+        <div className="relative overflow-hidden rounded-lg border border-border/60 bg-card/80">
+          {/* Grid pattern background */}
+          <div className="absolute inset-0 opacity-5">
+            <div
+              className="h-full w-full"
+              style={{
+                backgroundImage:
+                  "linear-gradient(hsl(var(--color-border)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--color-border)) 1px, transparent 1px)",
+                backgroundSize: "32px 32px",
+              }}
+            />
+          </div>
 
-          <TabsContent value="details">
-            <div className="space-y-8">
-              {/* Links & Resources Section */}
-              {(instrumentation.library_link || instrumentation.source_path) && (
-                <div>
-                  <SectionHeader>Links & Resources</SectionHeader>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {instrumentation.library_link && (
-                      <DetailCard withHoverEffect>
-                        <div className="flex items-start gap-3">
-                          <ExternalLink
-                            className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary"
-                            aria-hidden="true"
-                          />
-                          <div className="flex-1 space-y-1">
-                            <h3 className="text-sm font-medium text-muted-foreground">
-                              Library Link
-                            </h3>
-                            <a
-                              href={instrumentation.library_link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="break-all text-sm text-primary hover:underline"
-                            >
-                              {instrumentation.library_link}
-                            </a>
-                          </div>
-                        </div>
-                      </DetailCard>
-                    )}
+          <Tabs defaultValue="details" className="relative z-10">
+            <div className="bg-card/60 px-6 pt-4 border-b border-border/30">
+              <TabsList className="bg-transparent border-0 h-auto p-0 -mb-px">
+                <TabsTrigger value="details">
+                  <Info className="h-4 w-4" aria-hidden="true" />
+                  Details
+                </TabsTrigger>
+                <TabsTrigger value="telemetry">
+                  <Activity className="h-4 w-4" aria-hidden="true" />
+                  Telemetry
+                </TabsTrigger>
+                <TabsTrigger value="configuration">
+                  <Settings className="h-4 w-4" aria-hidden="true" />
+                  Configuration
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
-                    {instrumentation.source_path && (
-                      <DetailCard withHoverEffect>
-                        <div className="flex items-start gap-3">
-                          <Code
-                            className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary"
-                            aria-hidden="true"
-                          />
-                          <div className="flex-1 space-y-1">
-                            <h3 className="text-sm font-medium text-muted-foreground">
-                              Source Path
-                            </h3>
-                            <a
-                              href={buildSourceUrl(instrumentation.source_path)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="break-all text-sm text-primary hover:underline"
-                            >
-                              {instrumentation.source_path}
-                            </a>
+            <TabsContent value="details" className="p-6">
+              <div className="space-y-8">
+                {/* Links & Resources Section */}
+                {(instrumentation.library_link || instrumentation.source_path) && (
+                  <div>
+                    <SectionHeader>Links & Resources</SectionHeader>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      {instrumentation.library_link && (
+                        <DetailCard withHoverEffect>
+                          <div className="flex items-start gap-3">
+                            <ExternalLink
+                              className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary"
+                              aria-hidden="true"
+                            />
+                            <div className="flex-1 space-y-1">
+                              <h3 className="text-sm font-medium text-muted-foreground">
+                                Library Link
+                              </h3>
+                              <a
+                                href={instrumentation.library_link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="break-all text-sm text-primary hover:underline"
+                              >
+                                {instrumentation.library_link}
+                              </a>
+                            </div>
                           </div>
-                        </div>
-                      </DetailCard>
-                    )}
+                        </DetailCard>
+                      )}
+
+                      {instrumentation.source_path && (
+                        <DetailCard withHoverEffect>
+                          <div className="flex items-start gap-3">
+                            <Code
+                              className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary"
+                              aria-hidden="true"
+                            />
+                            <div className="flex-1 space-y-1">
+                              <h3 className="text-sm font-medium text-muted-foreground">
+                                Source Path
+                              </h3>
+                              <a
+                                href={buildSourceUrl(instrumentation.source_path)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="break-all text-sm text-primary hover:underline"
+                              >
+                                {instrumentation.source_path}
+                              </a>
+                            </div>
+                          </div>
+                        </DetailCard>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Requirements Section */}
-              {(instrumentation.minimum_java_version ||
-                (instrumentation.javaagent_target_versions &&
-                  instrumentation.javaagent_target_versions.length > 0)) && (
-                <div>
-                  <SectionHeader>Requirements</SectionHeader>
-                  <div className="space-y-4">
-                    {instrumentation.minimum_java_version && (
-                      <DetailCard withGrid withHoverEffect>
-                        <div className="space-y-2">
-                          <h3 className="text-sm font-medium text-muted-foreground">
-                            Minimum Java Version
-                          </h3>
-                          <p className="text-lg font-semibold text-foreground">
-                            {instrumentation.minimum_java_version}
+                {/* Requirements Section */}
+                {(instrumentation.minimum_java_version ||
+                  (instrumentation.javaagent_target_versions &&
+                    instrumentation.javaagent_target_versions.length > 0)) && (
+                  <div>
+                    <SectionHeader>Requirements</SectionHeader>
+                    <div className="space-y-4">
+                      {instrumentation.minimum_java_version && (
+                        <DetailCard withGrid withHoverEffect>
+                          <div className="space-y-2">
+                            <h3 className="text-sm font-medium text-muted-foreground">
+                              Minimum Java Version
+                            </h3>
+                            <p className="text-lg font-semibold text-foreground">
+                              {instrumentation.minimum_java_version}
+                            </p>
+                          </div>
+                        </DetailCard>
+                      )}
+
+                      {instrumentation.javaagent_target_versions &&
+                        instrumentation.javaagent_target_versions.length > 0 && (
+                          <DetailCard>
+                            <div className="space-y-3">
+                              <h3 className="text-sm font-medium text-muted-foreground">
+                                Target Versions
+                              </h3>
+                              <div className="flex flex-wrap gap-2">
+                                {instrumentation.javaagent_target_versions.map((targetVersion) => (
+                                  <GlowBadge key={targetVersion} variant="muted">
+                                    {targetVersion}
+                                  </GlowBadge>
+                                ))}
+                              </div>
+                            </div>
+                          </DetailCard>
+                        )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Instrumentation Scope Section */}
+                {instrumentation.scope && (
+                  <div>
+                    <SectionHeader>Instrumentation Scope</SectionHeader>
+                    <DetailCard withGrid>
+                      <div className="space-y-3">
+                        <div>
+                          <h3 className="text-sm font-medium text-muted-foreground">Scope Name</h3>
+                          <p className="mt-1 text-sm font-medium text-foreground">
+                            {instrumentation.scope.name}
                           </p>
                         </div>
-                      </DetailCard>
-                    )}
+                        {instrumentation.scope.schema_url && (
+                          <div>
+                            <h3 className="text-sm font-medium text-muted-foreground">
+                              Schema URL
+                            </h3>
+                            <code className="mt-1 block break-all rounded bg-muted px-2 py-1 text-xs">
+                              {instrumentation.scope.schema_url}
+                            </code>
+                          </div>
+                        )}
+                      </div>
+                    </DetailCard>
+                  </div>
+                )}
 
-                    {instrumentation.javaagent_target_versions &&
-                      instrumentation.javaagent_target_versions.length > 0 && (
+                {/* Capabilities Section */}
+                {((instrumentation.features && instrumentation.features.length > 0) ||
+                  (instrumentation.semantic_conventions &&
+                    instrumentation.semantic_conventions.length > 0)) && (
+                  <div>
+                    <SectionHeader>Capabilities</SectionHeader>
+                    <div className="space-y-4">
+                      {instrumentation.features && instrumentation.features.length > 0 && (
                         <DetailCard>
                           <div className="space-y-3">
-                            <h3 className="text-sm font-medium text-muted-foreground">
-                              Target Versions
-                            </h3>
-                            <div className="flex flex-wrap gap-2">
-                              {instrumentation.javaagent_target_versions.map((targetVersion) => (
-                                <GlowBadge key={targetVersion} variant="muted">
-                                  {targetVersion}
-                                </GlowBadge>
+                            <h3 className="text-sm font-medium text-muted-foreground">Features</h3>
+                            <ul className="space-y-2">
+                              {instrumentation.features.map((feature, index) => (
+                                <li key={index} className="flex items-start gap-2 text-sm">
+                                  <Check
+                                    className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary"
+                                    aria-hidden="true"
+                                  />
+                                  <span>{feature}</span>
+                                </li>
                               ))}
-                            </div>
+                            </ul>
                           </div>
                         </DetailCard>
                       )}
+
+                      {instrumentation.semantic_conventions &&
+                        instrumentation.semantic_conventions.length > 0 && (
+                          <DetailCard>
+                            <div className="space-y-3">
+                              <h3 className="text-sm font-medium text-muted-foreground">
+                                Semantic Conventions
+                              </h3>
+                              <div className="flex flex-wrap gap-2">
+                                {instrumentation.semantic_conventions.map((convention) => (
+                                  <GlowBadge key={convention} variant="muted">
+                                    {convention}
+                                  </GlowBadge>
+                                ))}
+                              </div>
+                            </div>
+                          </DetailCard>
+                        )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="telemetry" className="p-6">
+              {instrumentation.telemetry && instrumentation.telemetry.length > 0 ? (
+                <TelemetrySection telemetry={instrumentation.telemetry} />
+              ) : (
+                <div className="flex min-h-[300px] items-center justify-center">
+                  <div className="text-center">
+                    <Activity
+                      className="mx-auto h-12 w-12 text-muted-foreground/50"
+                      aria-hidden="true"
+                    />
+                    <p className="mt-4 text-sm text-muted-foreground">
+                      No telemetry information available.
+                    </p>
                   </div>
                 </div>
               )}
+            </TabsContent>
 
-              {/* Instrumentation Scope Section */}
-              {instrumentation.scope && (
-                <div>
-                  <SectionHeader>Instrumentation Scope</SectionHeader>
-                  <DetailCard withGrid>
-                    <div className="space-y-3">
-                      <div>
-                        <h3 className="text-sm font-medium text-muted-foreground">Scope Name</h3>
-                        <p className="mt-1 text-sm font-medium text-foreground">
-                          {instrumentation.scope.name}
+            <TabsContent value="configuration" className="p-6">
+              {instrumentation.configurations && instrumentation.configurations.length > 0 ? (
+                <div className="grid gap-4 md:grid-cols-2">
+                  {instrumentation.configurations.map((config) => (
+                    <DetailCard key={config.name} withHoverEffect>
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <code className="flex-1 break-all text-sm font-mono text-primary">
+                            {config.name}
+                          </code>
+                          <GlowBadge variant="info" withGlow>
+                            {config.type}
+                          </GlowBadge>
+                        </div>
+
+                        <p className="text-sm leading-relaxed text-muted-foreground">
+                          {config.description}
                         </p>
-                      </div>
-                      {instrumentation.scope.schema_url && (
-                        <div>
-                          <h3 className="text-sm font-medium text-muted-foreground">Schema URL</h3>
-                          <code className="mt-1 block break-all rounded bg-muted px-2 py-1 text-xs">
-                            {instrumentation.scope.schema_url}
+
+                        <div className="flex items-start gap-2 rounded-lg border border-border/30 bg-muted/30 p-3">
+                          <span className="text-xs font-medium text-muted-foreground">
+                            Default:
+                          </span>
+                          <code className="flex-1 break-all text-xs">
+                            {typeof config.default === "boolean"
+                              ? config.default.toString()
+                              : config.default}
                           </code>
                         </div>
-                      )}
-                    </div>
-                  </DetailCard>
+                      </div>
+                    </DetailCard>
+                  ))}
                 </div>
-              )}
-
-              {/* Capabilities Section */}
-              {((instrumentation.features && instrumentation.features.length > 0) ||
-                (instrumentation.semantic_conventions &&
-                  instrumentation.semantic_conventions.length > 0)) && (
-                <div>
-                  <SectionHeader>Capabilities</SectionHeader>
-                  <div className="space-y-4">
-                    {instrumentation.features && instrumentation.features.length > 0 && (
-                      <DetailCard>
-                        <div className="space-y-3">
-                          <h3 className="text-sm font-medium text-muted-foreground">Features</h3>
-                          <ul className="space-y-2">
-                            {instrumentation.features.map((feature, index) => (
-                              <li key={index} className="flex items-start gap-2 text-sm">
-                                <Check
-                                  className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary"
-                                  aria-hidden="true"
-                                />
-                                <span>{feature}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </DetailCard>
-                    )}
-
-                    {instrumentation.semantic_conventions &&
-                      instrumentation.semantic_conventions.length > 0 && (
-                        <DetailCard>
-                          <div className="space-y-3">
-                            <h3 className="text-sm font-medium text-muted-foreground">
-                              Semantic Conventions
-                            </h3>
-                            <div className="flex flex-wrap gap-2">
-                              {instrumentation.semantic_conventions.map((convention) => (
-                                <GlowBadge key={convention} variant="muted">
-                                  {convention}
-                                </GlowBadge>
-                              ))}
-                            </div>
-                          </div>
-                        </DetailCard>
-                      )}
+              ) : (
+                <div className="flex min-h-[300px] items-center justify-center">
+                  <div className="text-center">
+                    <Settings
+                      className="mx-auto h-12 w-12 text-muted-foreground/50"
+                      aria-hidden="true"
+                    />
+                    <p className="mt-4 text-sm text-muted-foreground">
+                      No configuration options available.
+                    </p>
                   </div>
                 </div>
               )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="telemetry">
-            {instrumentation.telemetry && instrumentation.telemetry.length > 0 ? (
-              <TelemetrySection telemetry={instrumentation.telemetry} />
-            ) : (
-              <div className="flex min-h-[300px] items-center justify-center">
-                <div className="text-center">
-                  <Activity
-                    className="mx-auto h-12 w-12 text-muted-foreground/50"
-                    aria-hidden="true"
-                  />
-                  <p className="mt-4 text-sm text-muted-foreground">
-                    No telemetry information available.
-                  </p>
-                </div>
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="configuration">
-            {instrumentation.configurations && instrumentation.configurations.length > 0 ? (
-              <div className="grid gap-4 md:grid-cols-2">
-                {instrumentation.configurations.map((config) => (
-                  <DetailCard key={config.name} withHoverEffect>
-                    <div className="space-y-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <code className="flex-1 break-all text-sm font-mono text-primary">
-                          {config.name}
-                        </code>
-                        <GlowBadge variant="info" withGlow>
-                          {config.type}
-                        </GlowBadge>
-                      </div>
-
-                      <p className="text-sm leading-relaxed text-muted-foreground">
-                        {config.description}
-                      </p>
-
-                      <div className="flex items-start gap-2 rounded-lg border border-border/30 bg-muted/30 p-3">
-                        <span className="text-xs font-medium text-muted-foreground">Default:</span>
-                        <code className="flex-1 break-all text-xs">
-                          {typeof config.default === "boolean"
-                            ? config.default.toString()
-                            : config.default}
-                        </code>
-                      </div>
-                    </div>
-                  </DetailCard>
-                ))}
-              </div>
-            ) : (
-              <div className="flex min-h-[300px] items-center justify-center">
-                <div className="text-center">
-                  <Settings
-                    className="mx-auto h-12 w-12 text-muted-foreground/50"
-                    aria-hidden="true"
-                  />
-                  <p className="mt-4 text-sm text-muted-foreground">
-                    No configuration options available.
-                  </p>
-                </div>
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
     </div>
   );
