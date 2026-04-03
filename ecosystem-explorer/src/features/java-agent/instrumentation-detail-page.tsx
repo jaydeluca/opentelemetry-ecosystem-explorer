@@ -32,6 +32,7 @@ import { DetailCard } from "@/components/ui/detail-card";
 import { SectionHeader } from "@/components/ui/section-header";
 import { useVersions, useInstrumentation } from "@/hooks/use-javaagent-data";
 import { getInstrumentationDisplayName } from "./utils/format";
+import { TelemetrySection } from "./components/telemetry-section";
 
 function buildSourceUrl(sourcePath: string): string {
   try {
@@ -393,128 +394,7 @@ export function InstrumentationDetailPage() {
 
           <TabsContent value="telemetry">
             {instrumentation.telemetry && instrumentation.telemetry.length > 0 ? (
-              <div className="space-y-8">
-                {instrumentation.telemetry.map((telemetry, index) => (
-                  <div key={index} className="space-y-6">
-                    {/* When indicator */}
-                    <div className="relative rounded-lg border-l-4 border-l-primary bg-card/50 p-4">
-                      <div
-                        className="absolute inset-y-0 left-0 w-1"
-                        style={{
-                          background:
-                            "linear-gradient(to bottom, hsl(var(--color-primary)), hsl(var(--color-secondary)))",
-                        }}
-                      />
-                      <div className="pl-2">
-                        <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                          When
-                        </h3>
-                        <p className="mt-1 text-sm font-medium text-foreground">{telemetry.when}</p>
-                      </div>
-                    </div>
-
-                    {/* Metrics */}
-                    {telemetry.metrics && telemetry.metrics.length > 0 && (
-                      <div>
-                        <SectionHeader>Metrics</SectionHeader>
-                        <div className="grid gap-4 md:grid-cols-2">
-                          {telemetry.metrics.map((metric, metricIndex) => (
-                            <DetailCard key={metricIndex} withHoverEffect>
-                              <div className="space-y-3">
-                                <div className="flex items-start justify-between gap-3">
-                                  <code className="flex-1 break-all text-sm font-mono text-primary">
-                                    {metric.name}
-                                  </code>
-                                  <GlowBadge variant="success" withGlow>
-                                    {metric.type}
-                                  </GlowBadge>
-                                </div>
-
-                                <p className="text-sm leading-relaxed text-muted-foreground">
-                                  {metric.description}
-                                </p>
-
-                                <div className="flex items-center gap-2 text-xs">
-                                  <span className="font-medium text-muted-foreground">Unit:</span>
-                                  <code className="rounded bg-muted px-1.5 py-0.5">
-                                    {metric.unit}
-                                  </code>
-                                </div>
-
-                                {metric.attributes && metric.attributes.length > 0 && (
-                                  <div className="space-y-2 border-t border-border/30 pt-3">
-                                    <h4 className="text-xs font-medium text-muted-foreground">
-                                      Attributes
-                                    </h4>
-                                    <div className="flex flex-wrap gap-2">
-                                      {metric.attributes.map((attr, attrIndex) => (
-                                        <div
-                                          key={attrIndex}
-                                          className="inline-flex items-center gap-1.5 text-xs"
-                                        >
-                                          <code className="rounded bg-muted px-1.5 py-0.5">
-                                            {attr.name}
-                                          </code>
-                                          <span className="text-muted-foreground">
-                                            ({attr.type})
-                                          </span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            </DetailCard>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Spans */}
-                    {telemetry.spans && telemetry.spans.length > 0 && (
-                      <div>
-                        <SectionHeader>Spans</SectionHeader>
-                        <div className="grid gap-4 md:grid-cols-2">
-                          {telemetry.spans.map((span, spanIndex) => (
-                            <DetailCard key={spanIndex} withHoverEffect>
-                              <div className="space-y-3">
-                                <div>
-                                  <GlowBadge variant="info" withGlow>
-                                    {span.span_kind}
-                                  </GlowBadge>
-                                </div>
-
-                                {span.attributes && span.attributes.length > 0 && (
-                                  <div className="space-y-2">
-                                    <h4 className="text-xs font-medium text-muted-foreground">
-                                      Attributes
-                                    </h4>
-                                    <div className="flex flex-wrap gap-2">
-                                      {span.attributes.map((attr, attrIndex) => (
-                                        <div
-                                          key={attrIndex}
-                                          className="inline-flex items-center gap-1.5 text-xs"
-                                        >
-                                          <code className="rounded bg-muted px-1.5 py-0.5">
-                                            {attr.name}
-                                          </code>
-                                          <span className="text-muted-foreground">
-                                            ({attr.type})
-                                          </span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            </DetailCard>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+              <TelemetrySection telemetry={instrumentation.telemetry} />
             ) : (
               <div className="flex min-h-[300px] items-center justify-center">
                 <div className="text-center">
