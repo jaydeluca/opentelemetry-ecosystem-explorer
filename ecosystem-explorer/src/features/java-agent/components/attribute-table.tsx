@@ -25,46 +25,40 @@ export function AttributeTable({ attributes }: AttributeTableProps) {
   }
 
   return (
-    <div
-      role="table"
-      aria-label="Attributes"
-      className="overflow-hidden rounded-lg border border-border/30"
-    >
-      {/* Table Header */}
-      <div role="row" className="grid grid-cols-12 gap-4 bg-white/5 p-3">
-        <div
-          role="columnheader"
-          className="col-span-8 text-[10px] font-bold uppercase tracking-widest text-muted-foreground"
-        >
-          Key
-        </div>
-        <div
-          role="columnheader"
-          className="col-span-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground"
-        >
-          Type
-        </div>
-      </div>
-
-      {/* Table Rows */}
-      {attributes.map((attr, index) => (
-        <div
-          key={index}
-          role="row"
-          className={`attribute-row grid grid-cols-12 p-4 items-center ${
-            index % 2 === 1 ? "bg-white/[0.02]" : ""
-          }`}
-        >
-          <div role="cell" className="col-span-8 font-mono text-sm md:text-[12px]">
-            {attr.name}
-          </div>
-          <div role="cell" className="col-span-4">
-            <span className="col-span-4 inline-block w-fit rounded bg-muted px-2 py-1 text-xs font-bold text-muted-foreground bg-slate-800">
-              {attr.type}
-            </span>
-          </div>
-        </div>
-      ))}
+    <div className="overflow-hidden rounded-lg border border-border/30">
+      <table aria-label="Attributes" className="w-full border-collapse">
+        <thead>
+          <tr className="bg-white/5">
+            <th
+              scope="col"
+              className="p-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground"
+            >
+              Key
+            </th>
+            <th
+              scope="col"
+              className="p-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground"
+            >
+              Type
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {attributes.map((attr, index) => (
+            <tr
+              key={attr.name}
+              className={`attribute-row ${index % 2 === 1 ? "bg-white/[0.02]" : ""}`}
+            >
+              <td className="p-4 font-mono text-sm md:text-[12px]">{attr.name}</td>
+              <td className="p-4">
+                <span className="inline-block w-fit rounded bg-slate-800/50 px-2 py-1 text-xs font-bold text-slate-300">
+                  {attr.type}
+                </span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

@@ -27,7 +27,13 @@ interface TelemetrySectionProps {
 export function TelemetrySection({ telemetry }: TelemetrySectionProps) {
   const [selectedWhen, setSelectedWhen] = useState(telemetry[0]?.when ?? "default");
 
-  const currentTelemetry = telemetry.find((t) => t.when === selectedWhen);
+  // Validate selected value and fall back to first option if invalid
+  const isCurrentSelectionValid = telemetry.some((t) => t.when === selectedWhen);
+  const effectiveSelectedWhen = isCurrentSelectionValid
+    ? selectedWhen
+    : (telemetry[0]?.when ?? "default");
+
+  const currentTelemetry = telemetry.find((t) => t.when === effectiveSelectedWhen) ?? telemetry[0];
 
   const hasMetrics = currentTelemetry?.metrics && currentTelemetry.metrics.length > 0;
   const hasSpans = currentTelemetry?.spans && currentTelemetry.spans.length > 0;
@@ -39,7 +45,7 @@ export function TelemetrySection({ telemetry }: TelemetrySectionProps) {
       {telemetry.length > 1 && (
         <ConfigurationSelector
           telemetry={telemetry}
-          selectedWhen={selectedWhen}
+          selectedWhen={effectiveSelectedWhen}
           onWhenChange={setSelectedWhen}
         />
       )}
@@ -59,7 +65,7 @@ export function TelemetrySection({ telemetry }: TelemetrySectionProps) {
                     <div className="space-y-6">
                       {/* Metric name and type badge */}
                       <div className="flex items-start justify-between gap-4">
-                        <code className="flex-1 break-all font-mono text-l font-semibold text-foreground">
+                        <code className="flex-1 break-all font-mono text-lg font-semibold text-foreground">
                           {metric.name}
                         </code>
                         <GlowBadge variant="success" withGlow className="text-[10px]">
@@ -68,7 +74,7 @@ export function TelemetrySection({ telemetry }: TelemetrySectionProps) {
                       </div>
 
                       {/* Description */}
-                      <p className="text-base leading-relaxed text-foreground/80 md:text">
+                      <p className="text-base leading-relaxed text-foreground/80 md:text-base">
                         {metric.description}
                       </p>
 
@@ -77,7 +83,9 @@ export function TelemetrySection({ telemetry }: TelemetrySectionProps) {
                         <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                           Unit
                         </span>
-                        <code className="rounded bg-muted px-2 py-1 text-sm">{metric.unit}</code>
+                        <code className="rounded bg-muted px-2 py-1 text-sm text-slate-200 bg-slate-800">
+                          {metric.unit}
+                        </code>
                       </div>
 
                       {/* Attributes section */}
@@ -110,7 +118,7 @@ export function TelemetrySection({ telemetry }: TelemetrySectionProps) {
                     <div className="space-y-6">
                       {/* Span kind badge */}
                       <div className="flex items-center justify-between">
-                        <h3 className="text-l font-bold text-foreground md:text-xl">
+                        <h3 className="text-lg font-bold text-foreground md:text-xl">
                           {span.span_kind} Span
                         </h3>
                         <GlowBadge variant="info" withGlow className="text-xs">
