@@ -30,7 +30,7 @@ export function TelemetrySection({ telemetry }: TelemetrySectionProps) {
   const currentTelemetry = telemetry.find((t) => t.when === selectedWhen);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 mt-10">
       {/* Configuration Selector - only show if multiple conditions exist */}
       {telemetry.length > 1 && (
         <ConfigurationSelector

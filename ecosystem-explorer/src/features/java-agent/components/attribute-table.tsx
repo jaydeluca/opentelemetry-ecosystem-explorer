@@ -52,7 +52,7 @@ export function AttributeTable({ attributes }: AttributeTableProps) {
           key={index}
           role="row"
           className={`attribute-row grid grid-cols-12 p-4 items-center ${
-            index % 2 === 1 ? "bg-muted/30 row-light" : ""
+            index % 2 === 1 ? "bg-white/[0.02]" : ""
           }`}
         >
           <div role="cell" className="col-span-8 font-mono text-sm md:text-[15px]">

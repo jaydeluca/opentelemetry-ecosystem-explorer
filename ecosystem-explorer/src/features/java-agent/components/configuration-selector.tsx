@@ -34,26 +34,30 @@ export function ConfigurationSelector({
 }: ConfigurationSelectorProps) {
   return (
     <div className="mx-auto max-w-3xl">
-      <div className="flex flex-col gap-4 rounded-xl border border-border/30 bg-card/40 p-6 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 rounded-xl border border-border/30 bg-card/40 backdrop-blur-sm p-6 shadow-sm md:flex-row md:items-center md:justify-between">
         {/* Left: Info banner */}
-        <div className="flex items-center gap-3 text-muted-foreground">
-          <Info className="h-5 w-5 text-secondary" aria-hidden="true" />
-          <span className="text-xs font-medium">Telemetry varies based on configuration</span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 rounded-lg bg-secondary/10 px-3 py-2 border border-secondary/20">
+            <Info className="h-4 w-4 text-secondary" aria-hidden="true" />
+            <span className="text-xs font-medium text-foreground/90">
+              Telemetry varies by configuration
+            </span>
+          </div>
         </div>
 
         {/* Right: Label + Select */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <label
             htmlFor="config-select"
-            className="text-xs font-bold uppercase tracking-widest text-muted-foreground"
+            className="rounded-md bg-muted/50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-foreground/70"
           >
-            Configuration:
+            Configuration
           </label>
           <select
             id="config-select"
             value={selectedWhen}
             onChange={(e) => onWhenChange(e.target.value)}
-            className="min-w-[240px] rounded-lg border border-border/30 bg-background px-4 py-2 text-sm text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
+            className="min-w-[200px] cursor-pointer rounded-lg border-2 border-primary/20 bg-primary/5 px-4 py-2.5 text-sm font-medium text-foreground shadow-sm transition-all duration-200 hover:border-primary/40 hover:bg-primary/10 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50"
           >
             {telemetry.map((t) => (
               <option key={t.when} value={t.when}>
