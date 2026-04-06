@@ -54,7 +54,20 @@ class TestTransformInstrumentationFormat:
                     "source_path": "instrumentation/activej-http-6.0",
                     "javaagent_target_versions": ["io.activej:activej-http:[6.0,)"],
                     "configurations": [],
-                    "telemetry": [{"when": "default", "spans": [{"span_kind": "SERVER"}]}],
+                    "telemetry": [
+                        {
+                            "when": "default",
+                            "metrics": [
+                                {
+                                    "name": "http.server.request.duration",
+                                    "description": "Duration of HTTP server requests.",
+                                    "type": "HISTOGRAM",
+                                    "unit": "s",
+                                }
+                            ],
+                            "spans": [{"span_kind": "SERVER"}],
+                        }
+                    ],
                 }
             ],
         }
@@ -62,8 +75,10 @@ class TestTransformInstrumentationFormat:
         result = transform_instrumentation_format(data)
 
         assert result["file_format"] == 0.3
-        assert result["libraries"][0]["data_type"] == "traces"
-        assert "type" not in result["libraries"][0]
+        # Verify the type field was renamed to data_type in the metric
+        metric = result["libraries"][0]["telemetry"][0]["metrics"][0]
+        assert metric["data_type"] == "HISTOGRAM"
+        assert "type" not in metric
         # Verify other fields are preserved
         assert result["libraries"][0]["name"] == "activej-http-6.0"
         assert result["libraries"][0]["display_name"] == "ActiveJ"
