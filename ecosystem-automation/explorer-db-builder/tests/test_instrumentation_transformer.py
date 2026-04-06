@@ -22,10 +22,10 @@ from explorer_db_builder.instrumentation_transformer import (
 
 
 class TestTransformInstrumentationFormat:
-    def test_format_0_2_no_transformation(self):
-        """Format 0.2 data is returned unchanged."""
+    def test_format_0_3_no_transformation(self):
+        """Format 0.3 data is returned unchanged."""
         data = {
-            "file_format": 0.2,
+            "file_format": 0.3,
             "libraries": [
                 {
                     "name": "test-lib",
@@ -38,7 +38,7 @@ class TestTransformInstrumentationFormat:
         result = transform_instrumentation_format(data)
 
         assert result == data
-        assert result["file_format"] == 0.2
+        assert result["file_format"] == 0.3
 
     def test_format_0_1_transforms_to_0_2(self):
         """Format 0.1 data is transformed to 0.2."""

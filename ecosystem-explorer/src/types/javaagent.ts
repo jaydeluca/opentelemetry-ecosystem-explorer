@@ -66,7 +66,8 @@ export interface Telemetry {
 export interface Metric {
   name: string;
   description: string;
-  type: "COUNTER" | "GAUGE" | "HISTOGRAM" | "SUMMARY";
+  instrument: "counter" | "gauge" | "histogram" | "summary";
+  data_type: "LONG_SUM" | "DOUBLE_SUM" | "COUNTER" | "HISTOGRAM" | "SUMMARY";
   unit: string;
   attributes?: Attribute[];
 }
