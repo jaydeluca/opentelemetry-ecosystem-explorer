@@ -39,8 +39,8 @@ describe("ConfigurationSelector", () => {
         {
           name: "http.metric",
           description: "HTTP metric",
-          instrument: "gauge",
-          data_type: "COUNTER",
+          instrument: "counter",
+          data_type: "LONG_SUM",
           unit: "ms",
         },
       ],

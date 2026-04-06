@@ -62,6 +62,7 @@ class TestTransformInstrumentationFormat:
                                     "name": "http.server.request.duration",
                                     "description": "Duration of HTTP server requests.",
                                     "type": "HISTOGRAM",
+                                    "instrument": "histogram",
                                     "unit": "s",
                                 }
                             ],
@@ -78,6 +79,7 @@ class TestTransformInstrumentationFormat:
         # Verify the type field was renamed to data_type in the metric
         metric = result["libraries"][0]["telemetry"][0]["metrics"][0]
         assert metric["data_type"] == "HISTOGRAM"
+        assert metric["instrument"] == "histogram"
         assert "type" not in metric
         # Verify other fields are preserved
         assert result["libraries"][0]["name"] == "activej-http-6.0"
