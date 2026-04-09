@@ -25,8 +25,7 @@
     // Dev dependencies (major)
     {
       "matchDepTypes": ["devDependencies"],
-      "matchUpdateTypes": ["major"],
-      "groupName": null
+      "matchUpdateTypes": ["major"]
     },
 
     // Production dependencies (patch)
@@ -46,8 +45,7 @@
     // Production dependencies (major)
     {
       "matchDepTypes": ["dependencies"],
-      "matchUpdateTypes": ["major"],
-      "groupName": null
+      "matchUpdateTypes": ["major"]
     },
 
     // GitHub Actions (patch/minor)
@@ -62,8 +60,7 @@
     {
       "matchManagers": ["github-actions"],
       "matchUpdateTypes": ["major"],
-      "minimumReleaseAge": "7 days",
-      "groupName": null
+      "minimumReleaseAge": "7 days"
     }
   ]
 }
