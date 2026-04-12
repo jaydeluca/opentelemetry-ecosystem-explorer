@@ -88,3 +88,39 @@ export interface Attribute {
     | "DOUBLE_ARRAY"
     | "BOOLEAN_ARRAY";
 }
+
+// Telemetry comparison types
+export type DiffStatus = "added" | "removed" | "changed" | "unchanged";
+
+export interface AttributeChanges {
+  added: Attribute[];
+  removed: Attribute[];
+}
+
+export interface MetricChanges {
+  description?: { before: string; after: string };
+  type?: { before: string; after: string };
+  unit?: { before: string; after: string };
+  attributes: AttributeChanges;
+}
+
+export interface SpanChanges {
+  attributes: AttributeChanges;
+}
+
+export interface MetricDiff {
+  status: DiffStatus;
+  metric: Metric;
+  changes?: MetricChanges;
+}
+
+export interface SpanDiff {
+  status: DiffStatus;
+  span: Span;
+  changes?: SpanChanges;
+}
+
+export interface TelemetryDiffResult {
+  metrics: MetricDiff[];
+  spans: SpanDiff[];
+}

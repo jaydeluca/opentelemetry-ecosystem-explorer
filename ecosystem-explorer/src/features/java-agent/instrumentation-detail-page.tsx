@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useParams, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Info,
   Activity,
@@ -31,8 +31,13 @@ import { GlowBadge } from "@/components/ui/glow-badge";
 import { DetailCard } from "@/components/ui/detail-card";
 import { SectionHeader } from "@/components/ui/section-header";
 import { useVersions, useInstrumentation } from "@/hooks/use-javaagent-data";
-import { getInstrumentationDisplayName, getSemanticConventionInfo, getFeatureInfo } from "./utils/format";
+import {
+  getInstrumentationDisplayName,
+  getSemanticConventionInfo,
+  getFeatureInfo,
+} from "./utils/format";
 import { TelemetrySection } from "./components/telemetry-section";
+import { TelemetryComparisonSection } from "./components/telemetry-comparison/telemetry-comparison-section";
 
 function buildSourceUrl(sourcePath: string): string {
   try {
@@ -48,6 +53,7 @@ function buildSourceUrl(sourcePath: string): string {
 export function InstrumentationDetailPage() {
   const { version, name } = useParams<{ version: string; name: string }>();
   const navigate = useNavigate();
+  const [showComparison, setShowComparison] = useState(false);
 
   const { data: versionsData, loading: versionsLoading } = useVersions();
 
@@ -439,7 +445,53 @@ export function InstrumentationDetailPage() {
 
             <TabsContent value="telemetry" className="p-6">
               {instrumentation.telemetry && instrumentation.telemetry.length > 0 ? (
-                <TelemetrySection telemetry={instrumentation.telemetry} />
+                <div className="space-y-8">
+                  {/* View toggle */}
+                  <div className="flex justify-center">
+                    <div
+                      className="inline-flex rounded-lg border border-border bg-transparent p-1"
+                      role="group"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setShowComparison(false)}
+                        aria-pressed={!showComparison}
+                        className={`rounded-lg px-4 py-2 text-sm font-medium transition-all duration-300 ease-in-out ${
+                          !showComparison
+                            ? "bg-card text-foreground shadow-sm"
+                            : "text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        Current View
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowComparison(true)}
+                        aria-pressed={showComparison}
+                        className={`rounded-lg px-4 py-2 text-sm font-medium transition-all duration-300 ease-in-out ${
+                          showComparison
+                            ? "bg-card text-foreground shadow-sm"
+                            : "text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        Version Comparison
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  {!showComparison ? (
+                    <TelemetrySection telemetry={instrumentation.telemetry} />
+                  ) : (
+                    versionsData && (
+                      <TelemetryComparisonSection
+                        instrumentationName={name ?? ""}
+                        versions={versionsData.versions}
+                        currentVersion={version ?? ""}
+                      />
+                    )
+                  )}
+                </div>
               ) : (
                 <div className="flex min-h-[300px] items-center justify-center">
                   <div className="text-center">
