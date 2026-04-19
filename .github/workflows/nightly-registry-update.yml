@@ -7,12 +7,18 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
   synchronize-inventory:
+    permissions:
+      contents: write
+      pull-requests: write
     runs-on: ubuntu-latest
+    outputs:
+      collector_result: ${{ steps.collector_watcher.outcome }}
+      java_result: ${{ steps.java_instrumentation_watcher.outcome }}
+      configuration_result: ${{ steps.configuration_watcher.outcome }}
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -33,21 +39,21 @@ jobs:
         run: |
           .github/scripts/use-cla-approved-bot.sh
 
-      - uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
+      - uses: actions/create-github-app-token@f8d387b68d61c58ab83c6c016672934102569859 # v3.0.0
         if: steps.repo_check.outputs.is_primary == 'true'
         id: otelbot-token
         with:
           app-id: ${{ vars.OTELBOT_APP_ID }}
           private-key: ${{ secrets.OTELBOT_PRIVATE_KEY }}
 
-      - name: Configure git (fork)
+      - name: Configure git (forked repository)
         if: steps.repo_check.outputs.is_primary == 'false'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Cache repository clones
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
         with:
           path: tmp_repos
           key: tmp-repos
@@ -55,7 +61,7 @@ jobs:
             tmp-repos-
 
       - name: Install uv
-        uses: astral-sh/setup-uv@5a095e7a2014a4212f075830d4f7277575a9d098 # v7.3.1
+        uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
         with:
           enable-cache: true
 
@@ -66,15 +72,31 @@ jobs:
         run: uv sync
 
       - name: Run collector-watcher
-        run: |
-          uv run collector-watcher
+        id: collector_watcher
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: uv run collector-watcher
+        continue-on-error: true
 
       - name: Run java-instrumentation-watcher
-        run: |
-          uv run java-instrumentation-watcher
+        id: java_instrumentation_watcher
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: uv run java-instrumentation-watcher
+        continue-on-error: true
+
+      - name: Run configuration-watcher
+        id: configuration_watcher
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: uv run configuration-watcher
+        continue-on-error: true
 
       - name: Check for inventory changes
         id: check_changes
+        if: always()
         run: |
           git add -N ecosystem-registry/ 2>/dev/null || true
           if git diff --quiet ecosystem-registry/ && [ -z "$(git ls-files --others --exclude-standard ecosystem-registry/)" ]; then
@@ -86,7 +108,6 @@ jobs:
       - name: Commit and push changes
         if: steps.check_changes.outputs.has_changes == 'true'
         env:
-          # not using secrets.GITHUB_TOKEN since pull requests from that token do not run workflows
           GH_TOKEN: ${{ steps.repo_check.outputs.is_primary == 'true' && steps.otelbot-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
           BRANCH="otelbot/automated-inventory-update"
@@ -106,7 +127,6 @@ jobs:
           EOF
           )"
 
-          # Check if an open PR exists for this branch
           if gh pr list --head ${BRANCH} --state open --json number --jq '.[0].number' | grep -q .; then
             echo "Open PR already exists, updating..."
             gh pr edit ${BRANCH} --title "${PR_TITLE}" --body "${PR_BODY}"
@@ -115,13 +135,35 @@ jobs:
             gh pr create --title "${PR_TITLE}" --body "${PR_BODY}" --base main --head ${BRANCH}
           fi
 
-  workflow-notification:
+  notify-collector:
     permissions:
       contents: read
       issues: write
-    needs:
-      - synchronize-inventory
+    needs: [synchronize-inventory]
     if: always()
     uses: ./.github/workflows/reusable-workflow-notification.yml
     with:
-      success: ${{ needs.synchronize-inventory.result == 'success' }}
+      success: ${{ needs.synchronize-inventory.outputs.collector_result == 'success' }}
+      watcher-name: "collector-watcher"
+
+  notify-java:
+    permissions:
+      contents: read
+      issues: write
+    needs: [synchronize-inventory]
+    if: always()
+    uses: ./.github/workflows/reusable-workflow-notification.yml
+    with:
+      success: ${{ needs.synchronize-inventory.outputs.java_result == 'success' }}
+      watcher-name: "java-instrumentation-watcher"
+
+  notify-configuration:
+    permissions:
+      contents: read
+      issues: write
+    needs: [synchronize-inventory]
+    if: always()
+    uses: ./.github/workflows/reusable-workflow-notification.yml
+    with:
+      success: ${{ needs.synchronize-inventory.outputs.configuration_result == 'success' }}
+      watcher-name: "configuration-watcher"

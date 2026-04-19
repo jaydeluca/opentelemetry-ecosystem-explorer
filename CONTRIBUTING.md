@@ -9,6 +9,19 @@ This project helps users discover and explore OpenTelemetry projects, instrument
 **No contribution is too small!** We value all forms of participation, from documentation improvements to code
 contributions. If you're new to open source or OpenTelemetry, don't hesitate to ask questions.
 
+## Quick Start
+
+```bash
+git clone https://github.com/YOUR_USERNAME/opentelemetry-ecosystem-explorer.git
+cd opentelemetry-ecosystem-explorer
+uv sync --all-groups && bun install
+cd ecosystem-explorer && bun install && bun run serve
+# Visit http://localhost:5173
+```
+
+Now you can browse Java Agent instrumentations and Collector components locally. Continue reading for detailed setup
+and contribution guidelines.
+
 ## Finding Issues to Work On
 
 Look for issues tagged with:
@@ -66,12 +79,9 @@ Before you begin contributing, ensure you have the following tools installed:
 * **uv**: Fast Python package installer and resolver
   * Install with: `pip install uv` or follow [uv installation guide](https://github.com/astral-sh/uv)
 
-* **Node.js 18.0.0 or higher**: Required for markdown linting
-  * Check your version: `node --version`
-  * Download from [nodejs.org](https://nodejs.org/)
-
-* **npm**: Comes with Node.js, used for managing development dependencies
-  * Check your version: `npm --version`
+* **Bun**: JavaScript runtime and package manager (used for ecosystem-explorer and markdown linting)
+  * Check your version: `bun --version`
+  * Install from [bun.sh](https://bun.sh/)
 
 * **Git**: Version control system (used in some of the automation scripts)
   * Check your version: `git --version`
@@ -85,7 +95,7 @@ Before you begin contributing, ensure you have the following tools installed:
 
 ## Getting Started
 
-### 1. Fork and Clone the Repository
+### Fork and Clone the Repository
 
 ```bash
 # Fork the repository on GitHub first, then clone your fork
@@ -93,20 +103,23 @@ git clone https://github.com/YOUR_USERNAME/opentelemetry-ecosystem-explorer.git
 cd opentelemetry-ecosystem-explorer
 ```
 
-### 2. Install Dependencies
+### Install Dependencies
 
 ```bash
 # Install Python dependencies using uv
 uv sync --all-groups
 
-# Install Node.js dependencies for markdown linting
-npm install
+# Install JavaScript dependencies for markdown linting (from repo root)
+bun install
+
+# Install ecosystem-explorer dependencies
+cd ecosystem-explorer && bun install && cd ..
 
 # Set up pre-commit hooks (recommended)
 pre-commit install
 ```
 
-### 3. Create a Branch
+### Create a Branch
 
 Before making changes, create a new branch:
 
@@ -138,10 +151,10 @@ uv run ruff check .
 uv run ruff format .
 
 # Run markdown linting
-npm run lint:md
+bun run lint:md
 
 # Fix markdown issues automatically
-npm run lint:md:fix
+bun run lint:md:fix
 
 # Add copyright headers to new files
 uv run python scripts/add_copyright.py
@@ -190,7 +203,46 @@ uv run pytest -k "test_pattern"
 * Tests are located alongside the components they test in the `src/` directory
 * Test setup file at `src/test/setup.ts` imports jest-dom matchers
 
+## PR Screenshots
+
+When working on UI changes, you can automatically generate screenshots of key Explorer pages to
+include in your PR for visual review.
+
+### Automatic Screenshots via GitHub Actions
+
+Add the `add-screenshots` label to your PR. A GitHub Actions workflow will:
+
+1. Build the frontend
+2. Launch a local server and use Playwright to capture screenshots of key pages (home, instrumentation
+   list, and instrumentation detail tabs)
+3. Commit the screenshots to `ecosystem-explorer/screenshots/` on your PR branch
+
+The workflow re-runs automatically on new commits while the label is present.
+
+### Local Screenshots
+
+You can also generate screenshots locally:
+
+```bash
+cd ecosystem-explorer
+bun install
+bun run build
+bunx playwright install --with-deps chromium
+node scripts/take-screenshots.mjs
+# Screenshots are saved to ecosystem-explorer/screenshots/
+```
+
 ## Contributing Rules
+
+### AI Usage
+
+AI tools can be used to assist with code generation, documentation, and other tasks related to this project. However,
+all contributions must be reviewed and tested by a human before submission.
+
+When working on UI elements, ensure that your agents reference the `ecosystem-explorer/DESIGN.md` document for detailed
+guidelines to help ensure consistency and quality across the project.
+
+For more details, read our [Generative AI contribution policy](https://github.com/open-telemetry/community/blob/main/policies/genai.md).
 
 ### Code Standards
 

@@ -16,6 +16,7 @@
 
 import argparse
 import logging
+import os
 import sys
 
 from .instrumentation_sync import InstrumentationSync
@@ -56,7 +57,8 @@ def main():
     logger.info("")
 
     try:
-        client = JavaInstrumentationClient()
+        github_token = os.environ.get("GITHUB_TOKEN")
+        client = JavaInstrumentationClient(github_token=github_token)
         inventory_manager = InventoryManager(inventory_dir=args.inventory_dir)
 
         sync = InstrumentationSync(client, inventory_manager)

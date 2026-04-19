@@ -23,6 +23,8 @@ import { NotFoundPage } from "@/features/not-found/not-found-page";
 import { JavaInstrumentationListPage } from "@/features/java-agent/java-instrumentation-list-page";
 import { JavaConfigurationBuilderPage } from "@/features/java-agent/configuration/java-configuration-builder-page";
 import { InstrumentationDetailPage } from "@/features/java-agent/instrumentation-detail-page";
+import { ConfigurationBuilderPage } from "@/features/java-agent/configuration/configuration-builder-page";
+import { AboutPage } from "@/features/about/about-page";
 
 export default function App() {
   return (
@@ -34,12 +36,18 @@ export default function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/java-agent" element={<JavaAgentPage />} />
             <Route path="/java-agent/instrumentation" element={<JavaInstrumentationListPage />} />
+            <Route path="/java-agent/instrumentation/:version" element={<JavaInstrumentationListPage />} />
             <Route
               path="/java-agent/instrumentation/:version/:name"
               element={<InstrumentationDetailPage />}
             />
-            <Route path="/java-agent/configuration" element={<JavaConfigurationBuilderPage />} />
+            <Route path="/java-agent/configuration" element={<JavaConfigurationListPage />} />
+            <Route
+              path="/java-agent/configuration/builder"
+              element={<ConfigurationBuilderPage />}
+            />
             <Route path="/collector" element={<CollectorPage />} />
+            <Route path="/about" element={<AboutPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </main>
