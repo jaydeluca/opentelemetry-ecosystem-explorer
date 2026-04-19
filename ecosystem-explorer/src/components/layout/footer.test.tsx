@@ -48,7 +48,7 @@ describe("Footer", () => {
       </MemoryRouter>
     );
 
-    const githubLink = screen.getByRole("link", { name: "GitHub" });
+    const githubLink = screen.getByRole("link", { name: "GitHub repository" });
     expect(githubLink).toHaveAttribute(
       "href",
       "https://github.com/open-telemetry/opentelemetry-ecosystem-explorer"
@@ -63,8 +63,28 @@ describe("Footer", () => {
       </MemoryRouter>
     );
 
-    const otelLink = screen.getByRole("link", { name: "opentelemetry.io" });
+    const otelLink = screen.getByRole("link", { name: "OpenTelemetry website" });
     expect(otelLink).toHaveAttribute("href", "https://opentelemetry.io");
     expect(otelLink).toHaveAttribute("target", "_blank");
+  });
+
+  it("renders the tagline", () => {
+    render(
+      <MemoryRouter>
+        <Footer />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText("Charting the observability landscape")).toBeInTheDocument();
+  });
+
+  it("renders the copyright notice", () => {
+    render(
+      <MemoryRouter>
+        <Footer />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText("© 2026–Present OpenTelemetry Authors")).toBeInTheDocument();
   });
 });

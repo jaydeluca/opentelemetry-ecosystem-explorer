@@ -4,16 +4,63 @@
     "config:best-practices",
     "helpers:pinGitHubActionDigestsToSemver"
   ],
-  "minimumReleaseAge": "14 days",
+  "minimumReleaseAge": "7 days",
   "internalChecksFilter": "strict",
+  "labels": ["dependencies"],
+  "schedule": ["before 8am on Monday"],
+
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 4am on Monday"]
+  },
+
   "packageRules": [
+    // Dev dependencies (patch/minor)
     {
-      "groupName": "all dependencies",
-      "matchUpdateTypes": ["patch", "minor", "major"],
-      "schedule": ["before 8am on Monday"]
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "groupName": "dev dependencies (non-major)",
+    },
+
+    // Dev dependencies (major)
+    {
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["major"]
+    },
+
+    // Production dependencies (patch)
+    {
+      "matchDepTypes": ["dependencies"],
+      "matchUpdateTypes": ["patch"],
+      "groupName": "production patches",
+    },
+
+    // Production dependencies (minor)
+    {
+      "matchDepTypes": ["dependencies"],
+      "matchUpdateTypes": ["minor"],
+      "groupName": "production minor updates"
+    },
+
+    // Production dependencies (major)
+    {
+      "matchDepTypes": ["dependencies"],
+      "matchUpdateTypes": ["major"]
+    },
+
+    // GitHub Actions (patch/minor)
+    {
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "minimumReleaseAge": "7 days",
+      "groupName": "GitHub Actions",
+    },
+
+    // GitHub Actions (major)
+    {
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["major"],
+      "minimumReleaseAge": "7 days"
     }
-  ],
-  "labels": [
-    "dependencies"
   ]
 }
