@@ -203,6 +203,35 @@ uv run pytest -k "test_pattern"
 * Tests are located alongside the components they test in the `src/` directory
 * Test setup file at `src/test/setup.ts` imports jest-dom matchers
 
+## PR Screenshots
+
+When working on UI changes, you can automatically generate screenshots of key Explorer pages to
+include in your PR for visual review.
+
+### Automatic Screenshots via GitHub Actions
+
+Add the `add-screenshots` label to your PR. A GitHub Actions workflow will:
+
+1. Build the frontend
+2. Launch a local server and use Playwright to capture screenshots of key pages (home, instrumentation
+   list, and instrumentation detail tabs)
+3. Commit the screenshots to `ecosystem-explorer/screenshots/` on your PR branch
+
+The workflow re-runs automatically on new commits while the label is present.
+
+### Local Screenshots
+
+You can also generate screenshots locally:
+
+```bash
+cd ecosystem-explorer
+bun install
+bun run build
+bunx playwright install --with-deps chromium
+node scripts/take-screenshots.mjs
+# Screenshots are saved to ecosystem-explorer/screenshots/
+```
+
 ## Contributing Rules
 
 ### AI Usage
