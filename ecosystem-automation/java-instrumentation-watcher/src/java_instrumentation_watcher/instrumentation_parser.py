@@ -183,6 +183,28 @@ class ParserV03(ParserV02):
         return data
 
 
+class ParserV05(ParserV03):
+    """Parser for file_format 0.5."""
+
+    def get_file_format(self) -> float:
+        return 0.5
+
+    def parse(self, yaml_content: str) -> dict[str, Any]:
+        """
+        Parse and normalize file_format 0.5 YAML content.
+
+        Changes from 0.3:
+        - `has_javaagent` field added
+        - `declarative_name` and `example` fields added to configurations
+        - Flattened library list (no more nested groups)
+        """
+        try:
+            data = yaml.safe_load(yaml_content) or {}
+            return self._clean_strings(data)
+        except yaml.YAMLError as e:
+            raise ValueError(f"Error parsing instrumentation YAML: {e}") from e
+
+
 class ParserFactory:
     """Factory for creating version-specific parsers."""
 
@@ -190,6 +212,7 @@ class ParserFactory:
         0.1: ParserV01,
         0.2: ParserV02,
         0.3: ParserV03,
+        0.5: ParserV05,
     }
 
     @classmethod
