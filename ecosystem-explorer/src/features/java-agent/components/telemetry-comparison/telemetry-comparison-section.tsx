@@ -31,34 +31,40 @@ export function TelemetryComparisonSection({
   versions,
   currentVersion,
 }: TelemetryComparisonSectionProps) {
-  // Find a comparison version (previous version or latest if current is not latest)
+  // "To" defaults to the version being viewed; "From" defaults to the previous release.
   const currentIndex = versions.findIndex((v) => v.version === currentVersion);
-  const defaultComparisonVersion =
+  const defaultFromVersion =
     currentIndex < versions.length - 1
       ? versions[currentIndex + 1].version
       : versions[0]?.version || currentVersion;
 
   const {
-    baseVersion,
-    comparisonVersion,
-    setBaseVersion,
-    setComparisonVersion,
+    fromVersion,
+    toVersion,
+    setFromVersion,
+    setToVersion,
+    whenCondition,
+    setWhenCondition,
+    availableConditions,
     diffResult,
     loading,
     error,
-    baseNotFound,
-    comparisonNotFound,
-  } = useTelemetryComparison(instrumentationName, currentVersion, defaultComparisonVersion);
+    fromNotFound,
+    toNotFound,
+  } = useTelemetryComparison(instrumentationName, defaultFromVersion, currentVersion);
 
   return (
     <div className="space-y-8">
       {/* Version selector panel */}
       <VersionSelectorPanel
         versions={versions}
-        baseVersion={baseVersion}
-        comparisonVersion={comparisonVersion}
-        onBaseVersionChange={setBaseVersion}
-        onComparisonVersionChange={setComparisonVersion}
+        fromVersion={fromVersion}
+        toVersion={toVersion}
+        onFromVersionChange={setFromVersion}
+        onToVersionChange={setToVersion}
+        whenCondition={whenCondition}
+        onWhenConditionChange={setWhenCondition}
+        availableConditions={availableConditions}
       />
 
       {/* Loading state */}
@@ -87,24 +93,22 @@ export function TelemetryComparisonSection({
       )}
 
       {/* Warning for missing versions */}
-      {!loading && !error && (baseNotFound || comparisonNotFound) && (
+      {!loading && !error && (fromNotFound || toNotFound) && (
         <div className="rounded-lg border border-yellow-400/30 bg-yellow-400/10 p-6">
           <div className="flex items-start gap-3">
             <AlertCircle className="h-5 w-5 text-yellow-400 mt-0.5 flex-shrink-0" />
             <div className="space-y-1">
               <p className="font-medium text-yellow-400">Version Availability Note</p>
-              {baseNotFound && (
+              {fromNotFound && (
                 <p className="text-sm text-yellow-400/80">
-                  The instrumentation was not available in version {baseVersion}.
-                  {comparisonNotFound
-                    ? ""
-                    : " All telemetry from the comparison version is shown as added."}
+                  The instrumentation was not available in version {fromVersion}.
+                  {toNotFound ? "" : " All telemetry from the “to” version is shown as added."}
                 </p>
               )}
-              {comparisonNotFound && !baseNotFound && (
+              {toNotFound && !fromNotFound && (
                 <p className="text-sm text-yellow-400/80">
-                  The instrumentation was not available in version {comparisonVersion}. All
-                  telemetry from the base version is shown as removed.
+                  The instrumentation was not available in version {toVersion}. All telemetry from
+                  the &ldquo;from&rdquo; version is shown as removed.
                 </p>
               )}
             </div>
@@ -113,7 +117,7 @@ export function TelemetryComparisonSection({
       )}
 
       {/* Same version warning */}
-      {!loading && !error && baseVersion === comparisonVersion && (
+      {!loading && !error && fromVersion === toVersion && (
         <div className="flex min-h-[200px] items-center justify-center">
           <div className="rounded-lg border border-yellow-400/30 bg-yellow-400/10 p-6">
             <div className="flex items-start gap-3">
@@ -130,7 +134,7 @@ export function TelemetryComparisonSection({
       )}
 
       {/* Results */}
-      {!loading && !error && diffResult && baseVersion !== comparisonVersion && (
+      {!loading && !error && diffResult && fromVersion !== toVersion && (
         <DiffResultsSection diffResult={diffResult} />
       )}
     </div>

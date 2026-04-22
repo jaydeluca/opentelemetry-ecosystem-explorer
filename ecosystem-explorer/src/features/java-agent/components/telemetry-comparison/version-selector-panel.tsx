@@ -19,18 +19,24 @@ import type { VersionInfo } from "@/types/javaagent";
 
 interface VersionSelectorPanelProps {
   versions: VersionInfo[];
-  baseVersion: string;
-  comparisonVersion: string;
-  onBaseVersionChange: (version: string) => void;
-  onComparisonVersionChange: (version: string) => void;
+  fromVersion: string;
+  toVersion: string;
+  onFromVersionChange: (version: string) => void;
+  onToVersionChange: (version: string) => void;
+  whenCondition: string;
+  onWhenConditionChange: (when: string) => void;
+  availableConditions: string[];
 }
 
 export function VersionSelectorPanel({
   versions,
-  baseVersion,
-  comparisonVersion,
-  onBaseVersionChange,
-  onComparisonVersionChange,
+  fromVersion,
+  toVersion,
+  onFromVersionChange,
+  onToVersionChange,
+  whenCondition,
+  onWhenConditionChange,
+  availableConditions,
 }: VersionSelectorPanelProps) {
   return (
     <div className="mx-auto max-w-4xl">
@@ -39,24 +45,24 @@ export function VersionSelectorPanel({
         <div className="flex items-center gap-2 rounded-lg bg-secondary/10 px-3 py-2 border border-secondary/20 w-fit">
           <Info className="h-4 w-4 text-secondary" aria-hidden="true" />
           <span className="text-xs font-medium text-foreground/90">
-            Compare default telemetry between two versions
+            Compare telemetry between two releases
           </span>
         </div>
 
         {/* Version selectors */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Base version selector */}
+          {/* From version selector */}
           <div className="space-y-3">
             <label
-              htmlFor="base-version-select"
+              htmlFor="from-version-select"
               className="block rounded-md bg-muted/50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-foreground/70 w-fit"
             >
-              Base Version
+              From
             </label>
             <select
-              id="base-version-select"
-              value={baseVersion}
-              onChange={(e) => onBaseVersionChange(e.target.value)}
+              id="from-version-select"
+              value={fromVersion}
+              onChange={(e) => onFromVersionChange(e.target.value)}
               className="w-full cursor-pointer rounded-lg border-2 border-primary/20 bg-primary/5 px-4 py-2.5 text-sm font-medium text-foreground shadow-sm transition-all duration-200 hover:border-primary/40 hover:bg-primary/10 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50"
             >
               {versions.map((v) => (
@@ -67,18 +73,18 @@ export function VersionSelectorPanel({
             </select>
           </div>
 
-          {/* Comparison version selector */}
+          {/* To version selector */}
           <div className="space-y-3">
             <label
-              htmlFor="comparison-version-select"
+              htmlFor="to-version-select"
               className="block rounded-md bg-muted/50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-foreground/70 w-fit"
             >
-              Comparison Version
+              To
             </label>
             <select
-              id="comparison-version-select"
-              value={comparisonVersion}
-              onChange={(e) => onComparisonVersionChange(e.target.value)}
+              id="to-version-select"
+              value={toVersion}
+              onChange={(e) => onToVersionChange(e.target.value)}
               className="w-full cursor-pointer rounded-lg border-2 border-primary/20 bg-primary/5 px-4 py-2.5 text-sm font-medium text-foreground shadow-sm transition-all duration-200 hover:border-primary/40 hover:bg-primary/10 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50"
             >
               {versions.map((v) => (
@@ -89,6 +95,29 @@ export function VersionSelectorPanel({
             </select>
           </div>
         </div>
+
+        {availableConditions.length > 1 && (
+          <div className="space-y-3">
+            <label
+              htmlFor="when-condition-select"
+              className="block rounded-md bg-muted/50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-foreground/70 w-fit"
+            >
+              Configuration
+            </label>
+            <select
+              id="when-condition-select"
+              value={whenCondition}
+              onChange={(e) => onWhenConditionChange(e.target.value)}
+              className="w-full cursor-pointer rounded-lg border-2 border-primary/20 bg-primary/5 px-4 py-2.5 text-sm font-medium text-foreground shadow-sm transition-all duration-200 hover:border-primary/40 hover:bg-primary/10 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50"
+            >
+              {availableConditions.map((c) => (
+                <option key={c} value={c}>
+                  {c === "default" ? "Default" : c}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
     </div>
   );

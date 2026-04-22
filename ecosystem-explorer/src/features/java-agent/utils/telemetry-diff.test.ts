@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 import { describe, it, expect } from "vitest";
-import { compareTelemetry } from "./telemetry-diff";
+import { compareTelemetry, getAvailableWhenConditions } from "./telemetry-diff";
 import type { InstrumentationData, Metric, Span, Attribute } from "@/types/javaagent";
 
 function makeInstrumentation(
   metrics?: Metric[],
-  spans?: Span[]
+  spans?: Span[],
+  when: string = "default"
 ): InstrumentationData {
   return {
     name: "test-instrumentation",
     scope: { name: "test" },
-    telemetry: [{ when: "default", metrics, spans }],
+    telemetry: [{ when, metrics, spans }],
   };
 }
 
@@ -38,7 +39,13 @@ describe("compareTelemetry", () => {
   });
 
   it("marks all metrics as added when base is null", () => {
-    const metric: Metric = { name: "http.duration", description: "desc", instrument: "histogram", data_type: "HISTOGRAM", unit: "ms" };
+    const metric: Metric = {
+      name: "http.duration",
+      description: "desc",
+      instrument: "histogram",
+      data_type: "HISTOGRAM",
+      unit: "ms",
+    };
     const comparison = makeInstrumentation([metric]);
     const result = compareTelemetry(null, comparison);
     expect(result.metrics).toHaveLength(1);
@@ -47,7 +54,13 @@ describe("compareTelemetry", () => {
   });
 
   it("marks all metrics as removed when comparison is null", () => {
-    const metric: Metric = { name: "http.duration", description: "desc", instrument: "histogram", data_type: "HISTOGRAM", unit: "ms" };
+    const metric: Metric = {
+      name: "http.duration",
+      description: "desc",
+      instrument: "histogram",
+      data_type: "HISTOGRAM",
+      unit: "ms",
+    };
     const base = makeInstrumentation([metric]);
     const result = compareTelemetry(base, null);
     expect(result.metrics).toHaveLength(1);
@@ -59,7 +72,8 @@ describe("compareTelemetry", () => {
     const metric: Metric = {
       name: "http.duration",
       description: "desc",
-      instrument: "histogram", data_type: "HISTOGRAM",
+      instrument: "histogram",
+      data_type: "HISTOGRAM",
       unit: "ms",
       attributes: [attrString("http.method")],
     };
@@ -71,8 +85,20 @@ describe("compareTelemetry", () => {
   });
 
   it("detects added metric", () => {
-    const existing: Metric = { name: "existing", description: "d", instrument: "counter", data_type: "COUNTER", unit: "1" };
-    const added: Metric = { name: "new.metric", description: "d2", instrument: "gauge", data_type: "LONG_GAUGE", unit: "s" };
+    const existing: Metric = {
+      name: "existing",
+      description: "d",
+      instrument: "counter",
+      data_type: "COUNTER",
+      unit: "1",
+    };
+    const added: Metric = {
+      name: "new.metric",
+      description: "d2",
+      instrument: "gauge",
+      data_type: "LONG_GAUGE",
+      unit: "s",
+    };
     const base = makeInstrumentation([existing]);
     const comparison = makeInstrumentation([existing, added]);
     const result = compareTelemetry(base, comparison);
@@ -82,8 +108,20 @@ describe("compareTelemetry", () => {
   });
 
   it("detects removed metric", () => {
-    const existing: Metric = { name: "existing", description: "d", instrument: "counter", data_type: "COUNTER", unit: "1" };
-    const removed: Metric = { name: "old.metric", description: "d2", instrument: "gauge", data_type: "LONG_GAUGE", unit: "s" };
+    const existing: Metric = {
+      name: "existing",
+      description: "d",
+      instrument: "counter",
+      data_type: "COUNTER",
+      unit: "1",
+    };
+    const removed: Metric = {
+      name: "old.metric",
+      description: "d2",
+      instrument: "gauge",
+      data_type: "LONG_GAUGE",
+      unit: "s",
+    };
     const base = makeInstrumentation([existing, removed]);
     const comparison = makeInstrumentation([existing]);
     const result = compareTelemetry(base, comparison);
@@ -94,10 +132,22 @@ describe("compareTelemetry", () => {
 
   it("detects changed metric description", () => {
     const base = makeInstrumentation([
-      { name: "m", description: "old desc", instrument: "counter", data_type: "COUNTER", unit: "1" },
+      {
+        name: "m",
+        description: "old desc",
+        instrument: "counter",
+        data_type: "COUNTER",
+        unit: "1",
+      },
     ]);
     const comparison = makeInstrumentation([
-      { name: "m", description: "new desc", instrument: "counter", data_type: "COUNTER", unit: "1" },
+      {
+        name: "m",
+        description: "new desc",
+        instrument: "counter",
+        data_type: "COUNTER",
+        unit: "1",
+      },
     ]);
     const result = compareTelemetry(base, comparison);
     expect(result.metrics).toHaveLength(1);
@@ -134,13 +184,21 @@ describe("compareTelemetry", () => {
 
   it("detects added attribute on metric", () => {
     const base = makeInstrumentation([
-      { name: "m", description: "d", instrument: "counter", data_type: "COUNTER", unit: "1", attributes: [attrString("a")] },
+      {
+        name: "m",
+        description: "d",
+        instrument: "counter",
+        data_type: "COUNTER",
+        unit: "1",
+        attributes: [attrString("a")],
+      },
     ]);
     const comparison = makeInstrumentation([
       {
         name: "m",
         description: "d",
-        instrument: "counter", data_type: "COUNTER",
+        instrument: "counter",
+        data_type: "COUNTER",
         unit: "1",
         attributes: [attrString("a"), attrString("b")],
       },
@@ -158,13 +216,21 @@ describe("compareTelemetry", () => {
       {
         name: "m",
         description: "d",
-        instrument: "counter", data_type: "COUNTER",
+        instrument: "counter",
+        data_type: "COUNTER",
         unit: "1",
         attributes: [attrString("a"), attrString("b")],
       },
     ]);
     const comparison = makeInstrumentation([
-      { name: "m", description: "d", instrument: "counter", data_type: "COUNTER", unit: "1", attributes: [attrString("a")] },
+      {
+        name: "m",
+        description: "d",
+        instrument: "counter",
+        data_type: "COUNTER",
+        unit: "1",
+        attributes: [attrString("a")],
+      },
     ]);
     const result = compareTelemetry(base, comparison);
     const diff = result.metrics[0];
@@ -245,5 +311,115 @@ describe("compareTelemetry - spans", () => {
     const comparison = makeInstrumentation(undefined, [{ span_kind: "CLIENT" }]);
     const result = compareTelemetry(base, comparison);
     expect(result.spans[0].status).toBe("unchanged");
+  });
+});
+
+describe("compareTelemetry - when parameter", () => {
+  it("compares a non-default when condition when both versions have it", () => {
+    const metric: Metric = {
+      name: "m",
+      description: "d",
+      instrument: "counter",
+      data_type: "COUNTER",
+      unit: "1",
+    };
+    const base = makeInstrumentation([metric], undefined, "when_X_enabled");
+    const comparison = makeInstrumentation([metric], undefined, "when_X_enabled");
+    const result = compareTelemetry(base, comparison, "when_X_enabled");
+    expect(result.metrics[0].status).toBe("unchanged");
+  });
+
+  it("treats missing when condition as empty (all added) when base lacks it", () => {
+    const metric: Metric = {
+      name: "m",
+      description: "d",
+      instrument: "counter",
+      data_type: "COUNTER",
+      unit: "1",
+    };
+    const base = makeInstrumentation([metric], undefined, "default");
+    const comparison = makeInstrumentation([metric], undefined, "when_X_enabled");
+    const result = compareTelemetry(base, comparison, "when_X_enabled");
+    expect(result.metrics).toHaveLength(1);
+    expect(result.metrics[0].status).toBe("added");
+  });
+
+  it("treats missing when condition as empty (all removed) when comparison lacks it", () => {
+    const metric: Metric = {
+      name: "m",
+      description: "d",
+      instrument: "counter",
+      data_type: "COUNTER",
+      unit: "1",
+    };
+    const base = makeInstrumentation([metric], undefined, "when_X_enabled");
+    const comparison = makeInstrumentation([metric], undefined, "default");
+    const result = compareTelemetry(base, comparison, "when_X_enabled");
+    expect(result.metrics).toHaveLength(1);
+    expect(result.metrics[0].status).toBe("removed");
+  });
+
+  it("defaults to when=default when third argument is omitted", () => {
+    const metric: Metric = {
+      name: "m",
+      description: "d",
+      instrument: "counter",
+      data_type: "COUNTER",
+      unit: "1",
+    };
+    const base = makeInstrumentation([metric]);
+    const comparison = makeInstrumentation([metric]);
+    const result = compareTelemetry(base, comparison);
+    expect(result.metrics[0].status).toBe("unchanged");
+  });
+});
+
+describe("getAvailableWhenConditions", () => {
+  it("returns union of when values from both instrumentations", () => {
+    const base: InstrumentationData = {
+      name: "test",
+      scope: { name: "test" },
+      telemetry: [{ when: "default" }, { when: "when_A" }],
+    };
+    const comparison: InstrumentationData = {
+      name: "test",
+      scope: { name: "test" },
+      telemetry: [{ when: "default" }, { when: "when_B" }],
+    };
+    const result = getAvailableWhenConditions(base, comparison);
+    expect(result).toContain("default");
+    expect(result).toContain("when_A");
+    expect(result).toContain("when_B");
+    expect(result).toHaveLength(3);
+  });
+
+  it("puts default first", () => {
+    const base: InstrumentationData = {
+      name: "test",
+      scope: { name: "test" },
+      telemetry: [{ when: "when_A" }, { when: "default" }],
+    };
+    const result = getAvailableWhenConditions(base, null);
+    expect(result[0]).toBe("default");
+  });
+
+  it("deduplicates identical when values", () => {
+    const base: InstrumentationData = {
+      name: "test",
+      scope: { name: "test" },
+      telemetry: [{ when: "default" }],
+    };
+    const comparison: InstrumentationData = {
+      name: "test",
+      scope: { name: "test" },
+      telemetry: [{ when: "default" }],
+    };
+    const result = getAvailableWhenConditions(base, comparison);
+    expect(result).toHaveLength(1);
+  });
+
+  it("handles both null inputs", () => {
+    const result = getAvailableWhenConditions(null, null);
+    expect(result).toEqual([]);
   });
 });

@@ -42,10 +42,7 @@ describe("Tabs", () => {
   it("applies custom className to TabsContent", () => {
     render(
       <Tabs defaultValue="tab1">
-        <SegmentedTabList
-          value="tab1"
-          tabs={[{ value: "tab1", label: "Tab 1" }]}
-        />
+        <SegmentedTabList value="tab1" tabs={[{ value: "tab1", label: "Tab 1" }]} />
         <TabsContent value="tab1" className="custom-content">
           Content 1
         </TabsContent>

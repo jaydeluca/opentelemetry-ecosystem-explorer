@@ -28,12 +28,30 @@ import type {
   SpanChanges,
 } from "@/types/javaagent";
 
-/**
- * Extract default telemetry (when === "default") from instrumentation data
- */
-export function getDefaultTelemetry(instrumentation: InstrumentationData | null): Telemetry | null {
+export function getTelemetryForCondition(
+  instrumentation: InstrumentationData | null,
+  when: string
+): Telemetry | null {
   if (!instrumentation?.telemetry) return null;
-  return instrumentation.telemetry.find((t) => t.when === "default") || null;
+  return instrumentation.telemetry.find((t) => t.when === when) ?? null;
+}
+
+export function getDefaultTelemetry(instrumentation: InstrumentationData | null): Telemetry | null {
+  return getTelemetryForCondition(instrumentation, "default");
+}
+
+export function getAvailableWhenConditions(
+  base: InstrumentationData | null,
+  comparison: InstrumentationData | null
+): string[] {
+  const baseWhens = base?.telemetry?.map((t) => t.when) ?? [];
+  const comparisonWhens = comparison?.telemetry?.map((t) => t.when) ?? [];
+  const unique = Array.from(new Set([...baseWhens, ...comparisonWhens]));
+  return unique.sort((a, b) => {
+    if (a === "default") return -1;
+    if (b === "default") return 1;
+    return a.localeCompare(b);
+  });
 }
 
 /**
@@ -230,20 +248,15 @@ function compareSpans(baseSpans: Span[] = [], comparisonSpans: Span[] = []): Spa
   return diffs;
 }
 
-/**
- * Main comparison function
- */
 export function compareTelemetry(
   baseInstrumentation: InstrumentationData | null,
-  comparisonInstrumentation: InstrumentationData | null
+  comparisonInstrumentation: InstrumentationData | null,
+  when: string = "default"
 ): TelemetryDiffResult {
-  const baseTelemetry = getDefaultTelemetry(baseInstrumentation);
-  const comparisonTelemetry = getDefaultTelemetry(comparisonInstrumentation);
+  const baseTelemetry = getTelemetryForCondition(baseInstrumentation, when);
+  const comparisonTelemetry = getTelemetryForCondition(comparisonInstrumentation, when);
 
-  const metrics = compareMetrics(
-    baseTelemetry?.metrics ?? [],
-    comparisonTelemetry?.metrics ?? []
-  );
+  const metrics = compareMetrics(baseTelemetry?.metrics ?? [], comparisonTelemetry?.metrics ?? []);
   const spans = compareSpans(baseTelemetry?.spans ?? [], comparisonTelemetry?.spans ?? []);
 
   return { metrics, spans };

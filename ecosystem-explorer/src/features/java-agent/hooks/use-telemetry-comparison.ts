@@ -14,109 +14,119 @@
  * limitations under the License.
  */
 
-import { useState, useEffect } from "react";
-import type { TelemetryDiffResult } from "@/types/javaagent";
+import { useState, useEffect, useRef } from "react";
+import type { InstrumentationData, TelemetryDiffResult } from "@/types/javaagent";
 import * as javaagentData from "@/lib/api/javaagent-data";
-import { compareTelemetry } from "../utils/telemetry-diff";
+import { compareTelemetry, getAvailableWhenConditions } from "../utils/telemetry-diff";
 
 export interface UseTelemetryComparisonResult {
-  baseVersion: string;
-  comparisonVersion: string;
-  setBaseVersion: (version: string) => void;
-  setComparisonVersion: (version: string) => void;
+  fromVersion: string;
+  toVersion: string;
+  setFromVersion: (version: string) => void;
+  setToVersion: (version: string) => void;
+  whenCondition: string;
+  setWhenCondition: (when: string) => void;
+  availableConditions: string[];
   diffResult: TelemetryDiffResult | null;
   loading: boolean;
   error: Error | null;
-  baseNotFound: boolean;
-  comparisonNotFound: boolean;
+  fromNotFound: boolean;
+  toNotFound: boolean;
 }
 
 export function useTelemetryComparison(
   instrumentationName: string,
-  initialBaseVersion: string,
-  initialComparisonVersion: string
+  initialFromVersion: string,
+  initialToVersion: string
 ): UseTelemetryComparisonResult {
-  const [baseVersion, setBaseVersion] = useState(initialBaseVersion);
-  const [comparisonVersion, setComparisonVersion] = useState(initialComparisonVersion);
+  const [fromVersion, setFromVersion] = useState(initialFromVersion);
+  const [toVersion, setToVersion] = useState(initialToVersion);
+  const [whenCondition, setWhenCondition] = useState<string>("default");
+  const [availableConditions, setAvailableConditions] = useState<string[]>(["default"]);
   const [diffResult, setDiffResult] = useState<TelemetryDiffResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const [baseNotFound, setBaseNotFound] = useState(false);
-  const [comparisonNotFound, setComparisonNotFound] = useState(false);
-
-  useEffect(() => {
-    setBaseVersion(initialBaseVersion);
-    setComparisonVersion(initialComparisonVersion);
-  }, [initialBaseVersion, initialComparisonVersion]);
+  const [fromNotFound, setFromNotFound] = useState(false);
+  const [toNotFound, setToNotFound] = useState(false);
+  const fromInstrRef = useRef<InstrumentationData | null>(null);
+  const toInstrRef = useRef<InstrumentationData | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadComparison() {
-      if (!instrumentationName || !baseVersion || !comparisonVersion) {
+      if (!instrumentationName || !fromVersion || !toVersion) {
         setDiffResult(null);
         setLoading(false);
         setError(null);
-        setBaseNotFound(false);
-        setComparisonNotFound(false);
+        setFromNotFound(false);
+        setToNotFound(false);
         return;
       }
 
-      if (baseVersion === comparisonVersion) {
+      if (fromVersion === toVersion) {
         setDiffResult(null);
         setLoading(false);
         setError(null);
-        setBaseNotFound(false);
-        setComparisonNotFound(false);
+        setFromNotFound(false);
+        setToNotFound(false);
         return;
       }
 
       setLoading(true);
       setError(null);
-      setBaseNotFound(false);
-      setComparisonNotFound(false);
+      setFromNotFound(false);
+      setToNotFound(false);
 
       try {
         // Load both instrumentations in parallel
-        const [baseData, comparisonData] = await Promise.allSettled([
-          javaagentData.loadInstrumentation(instrumentationName, baseVersion),
-          javaagentData.loadInstrumentation(instrumentationName, comparisonVersion),
+        const [fromData, toData] = await Promise.allSettled([
+          javaagentData.loadInstrumentation(instrumentationName, fromVersion),
+          javaagentData.loadInstrumentation(instrumentationName, toVersion),
         ]);
 
         if (cancelled) return;
 
-        // Check if base version failed
-        const baseInstrumentation = baseData.status === "fulfilled" ? baseData.value : null;
-        const baseLoadFailed = baseData.status === "rejected";
+        const fromInstrumentation = fromData.status === "fulfilled" ? fromData.value : null;
+        const fromLoadFailed = fromData.status === "rejected";
 
-        // Check if comparison version failed
-        const comparisonInstrumentation =
-          comparisonData.status === "fulfilled" ? comparisonData.value : null;
-        const comparisonLoadFailed = comparisonData.status === "rejected";
+        const toInstrumentation = toData.status === "fulfilled" ? toData.value : null;
+        const toLoadFailed = toData.status === "rejected";
 
-        if (baseLoadFailed && comparisonLoadFailed) {
+        if (fromLoadFailed && toLoadFailed) {
           setError(
             new Error(
               "Both versions could not be loaded. The instrumentation may not exist in these versions."
             )
           );
-          setBaseNotFound(true);
-          setComparisonNotFound(true);
+          setFromNotFound(true);
+          setToNotFound(true);
           setDiffResult(null);
           setLoading(false);
           return;
         }
 
-        if (baseLoadFailed) {
-          setBaseNotFound(true);
+        if (fromLoadFailed) {
+          setFromNotFound(true);
         }
 
-        if (comparisonLoadFailed) {
-          setComparisonNotFound(true);
+        if (toLoadFailed) {
+          setToNotFound(true);
+        }
+
+        fromInstrRef.current = fromInstrumentation;
+        toInstrRef.current = toInstrumentation;
+
+        const conditions = getAvailableWhenConditions(fromInstrumentation, toInstrumentation);
+        setAvailableConditions(conditions);
+
+        const activeCondition = conditions.includes(whenCondition) ? whenCondition : "default";
+        if (activeCondition !== whenCondition) {
+          setWhenCondition(activeCondition);
         }
 
         // Compute diff even if one version is missing (will show all added/removed)
-        const diff = compareTelemetry(baseInstrumentation, comparisonInstrumentation);
+        const diff = compareTelemetry(fromInstrumentation, toInstrumentation, activeCondition);
         setDiffResult(diff);
         setLoading(false);
       } catch (err) {
@@ -133,17 +143,27 @@ export function useTelemetryComparison(
     return () => {
       cancelled = true;
     };
-  }, [instrumentationName, baseVersion, comparisonVersion]);
+  }, [instrumentationName, fromVersion, toVersion]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!fromInstrRef.current && !toInstrRef.current) return;
+    if (fromVersion === toVersion) return;
+    const diff = compareTelemetry(fromInstrRef.current, toInstrRef.current, whenCondition);
+    setDiffResult(diff);
+  }, [whenCondition]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return {
-    baseVersion,
-    comparisonVersion,
-    setBaseVersion,
-    setComparisonVersion,
+    fromVersion,
+    toVersion,
+    setFromVersion,
+    setToVersion,
+    whenCondition,
+    setWhenCondition,
+    availableConditions,
     diffResult,
     loading,
     error,
-    baseNotFound,
-    comparisonNotFound,
+    fromNotFound,
+    toNotFound,
   };
 }
