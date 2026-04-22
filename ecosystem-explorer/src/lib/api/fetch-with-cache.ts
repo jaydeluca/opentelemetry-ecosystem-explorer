@@ -17,13 +17,18 @@ import { getCached, setCached, isIDBAvailable, type StoreName } from "./idb-cach
 
 const inflightRequests = new Map<string, Promise<unknown>>();
 
+export interface FetchWithCacheOptions {
+  allow404?: boolean;
+}
+
 export async function fetchWithCache<T>(
   cacheKey: string,
   url: string,
-  storeType: StoreName
-): Promise<T> {
+  storeType: StoreName,
+  options?: FetchWithCacheOptions
+): Promise<T | null> {
   if (inflightRequests.has(cacheKey)) {
-    return inflightRequests.get(cacheKey) as Promise<T>;
+    return inflightRequests.get(cacheKey) as Promise<T | null>;
   }
 
   const request = (async () => {
@@ -31,13 +36,15 @@ export async function fetchWithCache<T>(
       if (isIDBAvailable()) {
         const cachedData = await getCached<T>(cacheKey, storeType);
         if (cachedData !== null) {
-          inflightRequests.delete(cacheKey);
           return cachedData;
         }
       }
 
       const response = await fetch(url);
       if (!response.ok) {
+        if (response.status === 404 && options?.allow404) {
+          return null;
+        }
         throw new Error(`Failed to load ${cacheKey}: ${response.status} ${response.statusText}`);
       }
 
@@ -51,11 +58,9 @@ export async function fetchWithCache<T>(
         }
       }
 
-      inflightRequests.delete(cacheKey);
       return data;
-    } catch (error) {
+    } finally {
       inflightRequests.delete(cacheKey);
-      throw error;
     }
   })();
 

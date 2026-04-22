@@ -14,24 +14,29 @@
  * limitations under the License.
  */
 import type { ToggleNode } from "@/types/configuration";
+import { useConfigurationBuilder } from "@/hooks/use-configuration-builder";
 import { ControlWrapper } from "./control-wrapper";
 
 interface ToggleControlProps {
   node: ToggleNode;
+  path: string;
   value: boolean | null;
   onChange: (path: string, value: boolean | null) => void;
 }
 
-export function ToggleControl({ node, value, onChange }: ToggleControlProps) {
+export function ToggleControl({ node, path, value, onChange }: ToggleControlProps) {
   const isNull = node.nullable === true && value === null;
   const isEnabled = value ?? false;
+  const { state } = useConfigurationBuilder();
+  const error = state.validationErrors[path] ?? null;
 
   return (
     <ControlWrapper
       node={node}
       isNull={isNull}
-      onClear={() => onChange(node.path, null)}
-      onActivate={() => onChange(node.path, false)}
+      error={error}
+      onClear={() => onChange(path, null)}
+      onActivate={() => onChange(path, false)}
     >
       <button
         type="button"
@@ -39,7 +44,7 @@ export function ToggleControl({ node, value, onChange }: ToggleControlProps) {
         aria-checked={isEnabled}
         aria-label={node.label}
         aria-required={node.required || undefined}
-        onClick={() => onChange(node.path, !isEnabled)}
+        onClick={() => onChange(path, !isEnabled)}
         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 focus:ring-offset-background ${
           isEnabled ? "bg-primary" : "bg-border"
         }`}

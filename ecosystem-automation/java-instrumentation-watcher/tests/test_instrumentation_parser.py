@@ -21,6 +21,7 @@ from java_instrumentation_watcher.instrumentation_parser import (
     ParserV01,
     ParserV02,
     ParserV03,
+    ParserV05,
     parse_instrumentation_yaml,
 )
 
@@ -215,6 +216,53 @@ libraries:
         assert metric["data_type"] == "LONG_SUM"
 
 
+class TestParserV05:
+    parser = ParserV05()
+    assert parser.get_file_format() == 0.5
+
+    def test_parse_new_fields(self):
+        yaml_content = """
+        file_format: 0.5
+        libraries:
+        - name: activej-http-6.0
+          display_name: ActiveJ
+          description: This instrumentation enables HTTP server spans and HTTP server metrics
+            for the ActiveJ HTTP server.
+          semantic_conventions:
+          - HTTP_SERVER_SPANS
+          - HTTP_SERVER_METRICS
+          library_link: https://activej.io/
+          source_path: instrumentation/activej-http-6.0
+          minimum_java_version: 17
+          scope:
+            name: io.opentelemetry.activej-http-6.0
+            schema_url: https://opentelemetry.io/schemas/1.37.0
+          has_javaagent: true
+          javaagent_target_versions:
+          - io.activej:activej-http:[6.0,)
+          configurations:
+          - name: otel.instrumentation.http.known-methods
+            declarative_name: java.common.http.known_methods
+            description: Configures the instrumentation
+            type: list
+            default: CONNECT,DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT,TRACE
+            examples:
+            - value1
+            - value2
+            """
+        parser = ParserV03()
+        data = parser.parse(yaml_content)
+
+        lib = data["libraries"][0]
+        config = lib["configurations"][0]
+        assert "declarative_name" in config
+        assert config["declarative_name"] == "java.common.http.known_methods"
+        assert config["examples"] == ["value1", "value2"]
+
+        assert "has_javaagent" in lib
+        assert lib["has_javaagent"] is True
+
+
 class TestParserFactory:
     def test_get_parser_v0_1(self):
         parser = ParserFactory.get_parser(0.1)
@@ -238,8 +286,8 @@ class TestParserFactory:
     def test_get_default_parser(self):
         parser = ParserFactory.get_default_parser()
         assert isinstance(parser, InstrumentationParser)
-        # Should return the latest version (0.3 currently)
-        assert parser.get_file_format() == 0.3
+        # Should return the latest version
+        assert parser.get_file_format() == 0.5
 
 
 class TestParseInstrumentationYaml:

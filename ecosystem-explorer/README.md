@@ -66,15 +66,48 @@ src/
 │   ├── java-agent/               # Java Agent explorer
 │   ├── collector/                # Collector explorer
 │   └── not-found/                # 404 page
-├── lib/api/                      # Data layer
-│   ├── idb-cache.ts              # IndexedDB persistence
-│   └── javaagent-data.ts         # Data fetching with cache
+├── lib/                          # Utilities and data layer
+│   ├── api/                      # Data layer
+│   │   ├── idb-cache.ts          # IndexedDB persistence
+│   │   └── javaagent-data.ts     # Data fetching with cache
+│   └── feature-flags.ts          # Feature flag utility
 ├── hooks/                        # React hooks
 │   └── use-javaagent-data.ts     # Data hooks for components
 └── types/                        # TypeScript type definitions
     └── javaagent.ts              # Java Agent data types
 ```
 <!-- markdownlint-enable MD010 -->
+
+## Feature Flags
+
+Feature flags are controlled via [Vite environment variables](https://vite.dev/guide/env-and-mode) prefixed with
+`VITE_FEATURE_FLAG_`. They are evaluated at build time.
+
+**Enabling a flag locally:**
+
+Update `.env.development` file and set the flag to `true`, `1`, or `yes`:
+
+```bash
+VITE_FEATURE_FLAG_JAVA_CONFIG_BUILDER=true
+```
+
+For example, setting `VITE_FEATURE_FLAG_JAVA_CONFIG_BUILDER` to `true` makes the Java Config Builder visible, while
+setting it to `false` hides it.
+
+**Using a flag in code:**
+
+```tsx
+import { isEnabled } from "@/lib/feature-flags";
+
+{isEnabled("JAVA_CONFIG_BUILDER") && <MyComponent />}
+```
+
+The available feature flags are defined in `src/lib/feature-flags.ts`.
+
+**Deployment behavior:**
+
+Branch deploys and deploy previews enable both current feature flags through `netlify.toml`. Production does not enable
+them by default.
 
 ## Data Fetching and Caching
 
