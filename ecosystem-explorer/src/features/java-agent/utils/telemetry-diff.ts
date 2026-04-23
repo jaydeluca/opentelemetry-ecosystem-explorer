@@ -66,6 +66,7 @@ function compareAttributes(
 
   const added: Attribute[] = [];
   const removed: Attribute[] = [];
+  const changed: import("@/types/javaagent").AttributeChange[] = [];
 
   // Find added attributes
   for (const attr of comparisonAttrs) {
@@ -74,14 +75,21 @@ function compareAttributes(
     }
   }
 
-  // Find removed attributes
+  // Find removed attributes and check for type changes
   for (const attr of baseAttrs) {
-    if (!comparisonMap.has(attr.name)) {
+    const comparisonAttr = comparisonMap.get(attr.name);
+    if (!comparisonAttr) {
       removed.push(attr);
+    } else if (attr.type !== comparisonAttr.type) {
+      changed.push({
+        name: attr.name,
+        before: attr,
+        after: comparisonAttr,
+      });
     }
   }
 
-  return { added, removed };
+  return { added, removed, changed };
 }
 
 /**
@@ -124,10 +132,19 @@ function compareMetrics(
       const descriptionChanged = baseMetric.description !== comparisonMetric.description;
       const dataTypeChanged = baseMetric.data_type !== comparisonMetric.data_type;
       const unitChanged = baseMetric.unit !== comparisonMetric.unit;
+      const instrumentChanged = baseMetric.instrument !== comparisonMetric.instrument;
       const attributesChanged =
-        attributeChanges.added.length > 0 || attributeChanges.removed.length > 0;
+        attributeChanges.added.length > 0 ||
+        attributeChanges.removed.length > 0 ||
+        attributeChanges.changed.length > 0;
 
-      if (descriptionChanged || dataTypeChanged || unitChanged || attributesChanged) {
+      if (
+        descriptionChanged ||
+        dataTypeChanged ||
+        unitChanged ||
+        instrumentChanged ||
+        attributesChanged
+      ) {
         const changes: MetricChanges = {
           attributes: attributeChanges,
         };
@@ -150,6 +167,13 @@ function compareMetrics(
           changes.unit = {
             before: baseMetric.unit,
             after: comparisonMetric.unit,
+          };
+        }
+
+        if (instrumentChanged) {
+          changes.instrument = {
+            before: baseMetric.instrument,
+            after: comparisonMetric.instrument,
           };
         }
 
@@ -223,7 +247,9 @@ function compareSpans(baseSpans: Span[] = [], comparisonSpans: Span[] = []): Spa
         );
 
         const attributesChanged =
-          attributeChanges.added.length > 0 || attributeChanges.removed.length > 0;
+          attributeChanges.added.length > 0 ||
+          attributeChanges.removed.length > 0 ||
+          attributeChanges.changed.length > 0;
 
         if (attributesChanged) {
           const changes: SpanChanges = {

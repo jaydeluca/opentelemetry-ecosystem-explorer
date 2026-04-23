@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import type { ReactNode } from "react";
 import type { TelemetryDiffResult } from "@/types/javaagent";
 import { MetricDiffCard } from "./metric-diff-card";
 import { SpanDiffCard } from "./span-diff-card";
@@ -22,7 +23,7 @@ interface DiffResultsSectionProps {
   diffResult: TelemetryDiffResult;
 }
 
-function SectionDivider({ children }: { children: React.ReactNode }) {
+function SectionDivider({ children }: { children: ReactNode }) {
   return (
     <div className="flex items-center justify-center gap-4">
       <div className="h-px w-16 bg-gradient-to-r from-transparent to-border" />

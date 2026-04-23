@@ -100,15 +100,23 @@ export interface Attribute {
 // Telemetry comparison types
 export type DiffStatus = "added" | "removed" | "changed" | "unchanged";
 
+export interface AttributeChange {
+  name: string;
+  before: Attribute;
+  after: Attribute;
+}
+
 export interface AttributeChanges {
   added: Attribute[];
   removed: Attribute[];
+  changed: AttributeChange[];
 }
 
 export interface MetricChanges {
   description?: { before: string; after: string };
   data_type?: { before: string; after: string };
   unit?: { before: string; after: string };
+  instrument?: { before: string; after: string };
   attributes: AttributeChanges;
 }
 

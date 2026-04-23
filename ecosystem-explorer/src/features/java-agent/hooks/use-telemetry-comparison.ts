@@ -39,8 +39,8 @@ export function useTelemetryComparison(
   initialFromVersion: string,
   initialToVersion: string
 ): UseTelemetryComparisonResult {
-  const [fromVersion, setFromVersion] = useState(initialFromVersion);
-  const [toVersion, setToVersion] = useState(initialToVersion);
+  const [customFromVersion, setCustomFromVersion] = useState<string | null>(null);
+  const [customToVersion, setCustomToVersion] = useState<string | null>(null);
   const [whenCondition, setWhenCondition] = useState<string>("default");
   const [availableConditions, setAvailableConditions] = useState<string[]>(["default"]);
   const [diffResult, setDiffResult] = useState<TelemetryDiffResult | null>(null);
@@ -50,6 +50,9 @@ export function useTelemetryComparison(
   const [toNotFound, setToNotFound] = useState(false);
   const fromInstrRef = useRef<InstrumentationData | null>(null);
   const toInstrRef = useRef<InstrumentationData | null>(null);
+
+  const fromVersion = customFromVersion ?? initialFromVersion;
+  const toVersion = customToVersion ?? initialToVersion;
 
   useEffect(() => {
     let cancelled = false;
@@ -120,7 +123,10 @@ export function useTelemetryComparison(
         const conditions = getAvailableWhenConditions(fromInstrumentation, toInstrumentation);
         setAvailableConditions(conditions);
 
-        const activeCondition = conditions.includes(whenCondition) ? whenCondition : "default";
+        const fallbackCondition = conditions.includes("default") ? "default" : conditions[0];
+        const activeCondition = conditions.includes(whenCondition)
+          ? whenCondition
+          : fallbackCondition;
         if (activeCondition !== whenCondition) {
           setWhenCondition(activeCondition);
         }
@@ -155,8 +161,8 @@ export function useTelemetryComparison(
   return {
     fromVersion,
     toVersion,
-    setFromVersion,
-    setToVersion,
+    setFromVersion: setCustomFromVersion,
+    setToVersion: setCustomToVersion,
     whenCondition,
     setWhenCondition,
     availableConditions,
