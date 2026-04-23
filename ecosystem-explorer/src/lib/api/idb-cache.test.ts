@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import "fake-indexeddb/auto";
 import { initDB, getCached, setCached, clearAllCached, closeDB, STORES } from "./idb-cache";
 
 describe("idb-cache", () => {
   beforeEach(async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
     closeDB();
 
     await new Promise<void>((resolve) => {
@@ -29,6 +30,7 @@ describe("idb-cache", () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     closeDB();
   });
 
@@ -37,7 +39,7 @@ describe("idb-cache", () => {
       const db = await initDB();
 
       expect(db.name).toBe("otel-explorer-cache");
-      expect(db.version).toBe(2);
+      expect(db.version).toBe(4);
 
       const storeNames = Array.from(db.objectStoreNames);
       expect(storeNames).toContain("metadata");
@@ -85,6 +87,34 @@ describe("idb-cache", () => {
       const result = await getCached<typeof data>(key, STORES.CONFIGURATION);
 
       expect(result).toEqual(data);
+    });
+
+    it("should return data cached within 24 hours", async () => {
+      const key = "fresh-key";
+      const data = { value: "fresh" };
+      const now = Date.now();
+
+      await setCached(key, data, STORES.METADATA);
+      vi.setSystemTime(now + 23 * 60 * 60 * 1000); // 23 hours later
+      const result = await getCached<typeof data>(key, STORES.METADATA);
+
+      expect(result).toEqual(data);
+    });
+
+    it("should return null and delete entries older than 24 hours", async () => {
+      const key = "stale-key";
+      const data = { value: "stale" };
+      const now = Date.now();
+
+      await setCached(key, data, STORES.METADATA);
+      vi.setSystemTime(now + 25 * 60 * 60 * 1000); // 25 hours later
+      const result = await getCached<typeof data>(key, STORES.METADATA);
+
+      expect(result).toBeNull();
+      // Confirm it was deleted from the store
+      const db = await initDB();
+      const raw = await db.get(STORES.METADATA, key);
+      expect(raw).toBeUndefined();
     });
 
     it("should return null for non-existent keys", async () => {
