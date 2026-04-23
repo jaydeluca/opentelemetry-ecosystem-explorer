@@ -38,7 +38,11 @@ let dbInitPromise: Promise<IDBPDatabase> | null = null;
 let dbInitFailed = false;
 
 function isExpired(cachedAt: number): boolean {
-  return Date.now() - cachedAt > CACHE_EXPIRATION_MS;
+  const now = Date.now();
+  if (cachedAt > now) {
+    return true;
+  }
+  return now - cachedAt > CACHE_EXPIRATION_MS;
 }
 
 export async function initDB(): Promise<IDBPDatabase> {
