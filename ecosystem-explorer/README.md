@@ -56,15 +56,25 @@ bun run test
 
 <!-- markdownlint-disable MD010 -->
 
-```markdown
-src/ ├── components/ # Shared components │ ├── layout/ # Header, Footer │ ├── ui/ # Reusable UI
-components (buttons, cards, etc.) │ └── icons/ # SVG icon components ├── features/ # Feature-based
-modules │ ├── home/ # Home page │ ├── java-agent/ # Java Agent explorer │ ├── collector/ # Collector
-explorer │ └── not-found/ # 404 page ├── lib/ # Utilities and data layer │ ├── api/ # Data layer │ │
-├── idb-cache.ts # IndexedDB persistence │ │ └── javaagent-data.ts # Data fetching with cache │ └──
-feature-flags.ts # Feature flag utility ├── hooks/ # React hooks │ └── use-javaagent-data.ts # Data
-hooks for components └── types/ # TypeScript type definitions │ └── javaagent.ts # Java Agent data
-types
+src/
+├── components/ # Shared components
+│ ├── layout/ # Header, Footer
+│ ├── ui/ # Reusable UI components (buttons, cards, etc.)
+│ └── icons/ # SVG icon components
+├── features/ # Feature-based modules
+│ ├── home/ # Home page
+│ ├── java-agent/ # Java Agent explorer
+│ ├── collector/ # Collector explorer
+│ └── not-found/ # 404 page
+├── lib/ # Utilities and data layer
+│ ├── api/ # Data layer
+│ │ ├── idb-cache.ts # IndexedDB persistence
+│ │ └── javaagent-data.ts # Data fetching with cache
+│ └── feature-flags.ts # Feature flag utility
+├── hooks/ # React hooks
+│ └── use-javaagent-data.ts # Data hooks for components
+└── types/ # TypeScript type definitions
+│ └── javaagent.ts # Java Agent data types
 ```
 
 <!-- markdownlint-enable MD010 -->
