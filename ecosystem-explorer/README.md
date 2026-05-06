@@ -56,6 +56,7 @@ bun run test
 
 <!-- markdownlint-disable MD010 -->
 
+```text
 src/
 ├── components/ # Shared components
 │ ├── layout/ # Header, Footer
