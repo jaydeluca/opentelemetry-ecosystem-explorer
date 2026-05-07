@@ -79,7 +79,7 @@ export default async (request: Request, context: Context) => {
     "/agent/javaagent/versions/": "/agent/javaagent/versions.md",
   };
 
-  let resolvedPath = agentPathMap[pathname] || pathname;
+  const resolvedPath = agentPathMap[pathname] || pathname;
   if (resolvedPath.endsWith(".md") || resolvedPath.startsWith("/agent/")) {
     if (resolvedPath.endsWith(".md")) {
       const response = await context.rewrite(resolvedPath);
