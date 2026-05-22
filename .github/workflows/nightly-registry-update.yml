@@ -11,6 +11,7 @@ permissions:
 
 jobs:
   synchronize-inventory:
+    name: Synchronize registry inventory
     if:
       github.event_name != 'schedule' || github.repository ==
       'open-telemetry/opentelemetry-ecosystem-explorer'
@@ -266,6 +267,7 @@ jobs:
           fi
 
   notify-collector:
+    name: Notify on collector-watcher failure
     permissions:
       contents: read
       issues: write
@@ -277,6 +279,7 @@ jobs:
       watcher-name: "collector-watcher"
 
   notify-java:
+    name: Notify on java-instrumentation-watcher failure
     permissions:
       contents: read
       issues: write
@@ -288,6 +291,7 @@ jobs:
       watcher-name: "java-instrumentation-watcher"
 
   notify-configuration:
+    name: Notify on configuration-watcher failure
     permissions:
       contents: read
       issues: write
@@ -299,6 +303,7 @@ jobs:
       watcher-name: "configuration-watcher"
 
   notify-dotnet:
+    name: Notify on dotnet-instrumentation-watcher failure
     permissions:
       contents: read
       issues: write
