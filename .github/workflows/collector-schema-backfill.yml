@@ -10,17 +10,10 @@ name: Collector Schema Backfill
 on:
   workflow_dispatch:
     inputs:
-      distribution:
-        description: "Distribution to backfill"
-        type: choice
-        default: all
-        options:
-          - all
-          - core
-          - contrib
       versions:
         description:
-          "Comma-separated versions (e.g. 0.144.0,0.145.0). Empty = all existing versions."
+          "Optional comma-separated versions to scope the backfill (e.g. 0.144.0,0.145.0). Empty =
+          all existing versions, both distributions."
         type: string
         required: false
         default: ""
@@ -110,15 +103,12 @@ jobs:
       - name: Run collector-watcher backfill
         id: backfill
         env:
-          DISTRIBUTION: ${{ inputs.distribution }}
           VERSIONS: ${{ inputs.versions }}
         run: |
-          # Backfill clones both core and contrib regardless of scope, so the
-          # core mdatagen schema is always resolvable at each version's ref.
+          # Backfill re-extracts both core and contrib. Contrib's schema is
+          # resolved from the core clone at each version's ref, so both
+          # distributions stay in sync regardless of scope.
           ARGS=(--backfill)
-          if [ "$DISTRIBUTION" != "all" ]; then
-            ARGS+=(--distribution "$DISTRIBUTION")
-          fi
           if [ -n "$VERSIONS" ]; then
             ARGS+=(--versions "$VERSIONS")
           fi
@@ -145,7 +135,6 @@ jobs:
           GH_TOKEN:
             ${{ steps.repo_check.outputs.is_primary == 'true' && steps.otelbot-token.outputs.token
             || secrets.GITHUB_TOKEN }}
-          DISTRIBUTION: ${{ inputs.distribution }}
           VERSIONS: ${{ inputs.versions }}
           RUN_ID: ${{ github.run_id }}
           REPO: ${{ github.repository }}
@@ -153,13 +142,12 @@ jobs:
           BRANCH="otelbot/collector-schema-backfill"
 
           git add ecosystem-registry/
-          git commit -m "Backfill collector schema hashes (${DISTRIBUTION}${VERSIONS:+: $VERSIONS})"
+          git commit -m "Backfill collector schema hashes${VERSIONS:+ ($VERSIONS)}"
           git push -f origin HEAD:${BRANCH}
 
           PR_TITLE="[automated] Backfill collector schema hashes"
           PR_BODY="Re-extracted collector registry versions via \`collector-watcher --backfill\`.
 
-          - **Distribution:** ${DISTRIBUTION}
           - **Versions:** ${VERSIONS:-all existing}
 
           Review the per-version \`schema_hash\` changes in the diff. Contrib versions must carry the *same* hash as the matching core version; if every contrib version shares one hash, that is the bug this workflow's fix guards against.

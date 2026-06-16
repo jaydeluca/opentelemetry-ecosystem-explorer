@@ -172,9 +172,7 @@ class CollectorSync:
 
         Schema is always read from the core repo: ``mdatagen`` lives only in
         ``opentelemetry-collector``, and the schema is identical across
-        distributions, so contrib carries the same ``schema_hash`` as core. The
-        schema is resolved at ``version``'s ref (see ``_resolve_schema_hash``),
-        not the core clone's current checkout.
+        distributions, so contrib carries the same ``schema_hash`` as core.
 
         Registry layout after this call:
             ecosystem-registry/collector/
@@ -200,25 +198,14 @@ class CollectorSync:
         logger.info("  Saved %s %s (schema_hash=%s)", distribution, version, schema_hash)
 
     def _resolve_schema_hash(self, version: Version) -> str:
-        """Store and return the core ``metadata-schema.yaml`` hash for ``version``.
+        """Store and return the core schema hash for ``version``.
 
-        ``mdatagen`` lives only in ``opentelemetry-collector``, so every
-        distribution records the *core* schema at the matching version. The
-        schema is read from the core repo *at that version's git ref* rather than
-        the clone's current checkout: a backfill processes core fully and then
-        contrib fully, leaving the core clone on ``main``, so a checkout-dependent
-        read would stamp every contrib version with the latest schema instead of
-        its own (see issue #583 follow-up).
-
-        Falls back through ``_core_schema_refs`` when the exact tag is missing,
-        logging which ref was actually used. Returns ``UNKNOWN_HASH`` when no
-        core ref yields the schema (older tags that pre-date the file).
-
-        Args:
-            version: Version being saved.
-
-        Returns:
-            The 12-char schema hash, or ``UNKNOWN_HASH``.
+        ``mdatagen`` lives only in core, so every distribution records the core
+        schema at its version. The schema is read from the core repo at that
+        version's git ref, not the clone's current checkout — a backfill leaves
+        the core clone on ``main``, which would otherwise stamp every version
+        with the latest schema. Falls back through ``_core_schema_refs`` (with a
+        warning) and returns ``UNKNOWN_HASH`` if no ref yields the schema.
         """
         core = self.version_detectors["core"]
         schemas_dir = self.inventory_manager.meta_schemas_dir()
@@ -247,15 +234,9 @@ class CollectorSync:
         return UNKNOWN_HASH
 
     def _core_schema_refs(self, version: Version) -> list[str]:
-        """Ordered core git refs to try when resolving the schema for ``version``.
-
-        Exact version tag first; then the nearest *earlier* core release (covers
-        versions core never tagged, e.g. a contrib release whose core counterpart
-        is a different patch); ``main`` last so a brand-new version still resolves
-        to the current schema rather than ``UNKNOWN_HASH``.
-
-        Prereleases (SNAPSHOTs) are built from ``main``, so they resolve to
-        ``main`` only.
+        """Ordered core refs to try for ``version``'s schema: exact tag, then the
+        nearest earlier core release (for versions core never tagged), then
+        ``main``. Prereleases (SNAPSHOTs) are built from ``main`` only.
         """
         if version.prerelease:
             return ["main"]
