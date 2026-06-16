@@ -15,7 +15,6 @@
 """Collector metadata synchronization to registry."""
 
 import logging
-from pathlib import Path
 from typing import Any
 
 from semantic_version import Version
@@ -24,7 +23,7 @@ from watcher_common.version_detector import VersionDetector
 from .component_scanner import ComponentScanner
 from .deprecation_detector import DeprecationDetector
 from .inventory_manager import InventoryManager
-from .schema_copier import CollectorSchemaCopier
+from .schema_copier import SCHEMA_RELATIVE_PATH, UNKNOWN_HASH, CollectorSchemaCopier
 from .type_defs import DistributionName
 
 logger = logging.getLogger(__name__)
@@ -59,6 +58,7 @@ class CollectorSync:
         self.repos = repos
         self.inventory_manager = inventory_manager
         self.version_detectors = {dist: VersionDetector(path) for dist, path in repos.items()}
+        self.schema_copier = CollectorSchemaCopier()
         self.deprecation_detector = DeprecationDetector()
         self.deprecations = inventory_manager.load_deprecations()
         self.previous_versions: dict[DistributionName, Version | None] = {}
@@ -184,10 +184,7 @@ class CollectorSync:
             version: Version being saved
             components: Scanned components
         """
-        copier = CollectorSchemaCopier()
-        core_repo_path = Path(self.repos["core"])
-        stored_hash = copier.store_schema(core_repo_path, self.inventory_manager.meta_schemas_dir())
-        schema_hash = stored_hash if stored_hash is not None else "unknown"
+        schema_hash = self._resolve_schema_hash(version)
 
         repository = self.get_repository_name(distribution)
         self.inventory_manager.save_versioned_inventory(
@@ -199,6 +196,57 @@ class CollectorSync:
         )
 
         logger.info("  Saved %s %s (schema_hash=%s)", distribution, version, schema_hash)
+
+    def _resolve_schema_hash(self, version: Version) -> str:
+        """Store and return the core schema hash for ``version``.
+
+        ``mdatagen`` lives only in core, so every distribution records the core
+        schema at its version. The schema is read from the core repo at that
+        version's git ref, not the clone's current checkout — a backfill leaves
+        the core clone on ``main``, which would otherwise stamp every version
+        with the latest schema. Falls back through ``_core_schema_refs`` (with a
+        warning) and returns ``UNKNOWN_HASH`` if no ref yields the schema.
+        """
+        core = self.version_detectors["core"]
+        schemas_dir = self.inventory_manager.meta_schemas_dir()
+
+        candidate_refs = self._core_schema_refs(version)
+        for index, ref in enumerate(candidate_refs):
+            content = core.read_file_at_ref(ref, SCHEMA_RELATIVE_PATH)
+            if content is None:
+                continue
+            if index > 0:
+                logger.warning(
+                    "Core schema not found at %s for %s; using %s instead",
+                    candidate_refs[0],
+                    version,
+                    ref,
+                )
+            stored = self.schema_copier.store_schema_content(content, schemas_dir)
+            return stored if stored is not None else UNKNOWN_HASH
+
+        logger.warning(
+            "No core schema found for %s (tried: %s); recording %s",
+            version,
+            ", ".join(candidate_refs),
+            UNKNOWN_HASH,
+        )
+        return UNKNOWN_HASH
+
+    def _core_schema_refs(self, version: Version) -> list[str]:
+        """Ordered core refs to try for ``version``'s schema: exact tag, then the
+        nearest earlier core release (for versions core never tagged), then
+        ``main``. Prereleases (SNAPSHOTs) are built from ``main`` only.
+        """
+        if version.prerelease:
+            return ["main"]
+
+        refs = [f"v{version}"]
+        earlier = [v for v in self.version_detectors["core"].get_all_release_tags() if not v.prerelease and v < version]
+        if earlier:
+            refs.append(f"v{max(earlier)}")
+        refs.append("main")
+        return refs
 
     def initialize_previous_version(self, distribution: DistributionName) -> None:
         """
@@ -341,9 +389,9 @@ class CollectorSync:
 
     def _process_distribution_sync(self, distribution: DistributionName) -> tuple[Version | None, Version]:
         latest = self.process_latest_release(distribution)
-        
+
         snapshot = self.update_snapshot(distribution)
-        
+
         return (latest, snapshot)
 
     def sync(self) -> dict[str, Any]:
@@ -376,7 +424,7 @@ class CollectorSync:
 
                 latest, snapshot = self._process_distribution_sync(distribution)
                 distribution_results[distribution] = (latest, snapshot)
-                
+
         except Exception as e:
             logger.error("Error processing distributions: %s", e)
             raise
