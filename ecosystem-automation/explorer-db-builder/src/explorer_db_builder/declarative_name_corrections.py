@@ -254,13 +254,15 @@ def backfill_underdocumented_configs(
 
         # Template = the newest config object per instrumentation that carries this declarative_name.
         template_by_instrumentation: dict[str | None, dict[str, Any]] = {}
-        for _version, inventory in versioned_inventories_newest_first:
+        template_version_by_instrumentation: dict[str | None, Version] = {}
+        for template_version, inventory in versioned_inventories_newest_first:
             for instrumentation_name, config in _iter_configs(inventory):
                 if (
                     config.get("declarative_name") == declarative_name
                     and instrumentation_name not in template_by_instrumentation
                 ):
                     template_by_instrumentation[instrumentation_name] = config
+                    template_version_by_instrumentation[instrumentation_name] = template_version
 
         if not template_by_instrumentation:
             continue
@@ -272,8 +274,12 @@ def backfill_underdocumented_configs(
                 for item in inventory.get(key) or []:
                     if not isinstance(item, dict):
                         continue
-                    template = template_by_instrumentation.get(item.get("name"))
-                    if template is None:
+                    instrumentation_name = item.get("name")
+                    template = template_by_instrumentation.get(instrumentation_name)
+                    template_version = template_version_by_instrumentation.get(instrumentation_name)
+                    if template is None or template_version is None:
+                        continue
+                    if version > template_version:
                         continue
                     configurations = item.get("configurations")
                     if not isinstance(configurations, list):
