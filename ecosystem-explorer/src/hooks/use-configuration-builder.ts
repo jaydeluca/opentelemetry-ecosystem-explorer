@@ -255,7 +255,11 @@ export function useConfigurationBuilderState(
     let parsed: unknown;
     try {
       // Enable YAML merge keys (`<<`) so pasted configs using anchors resolve.
-      parsed = loadYaml(yaml, { schema: CORE_SCHEMA.withTags(mergeTag) });
+      parsed = loadYaml(yaml, {
+        schema: CORE_SCHEMA.withTags(mergeTag),
+        maxAliases: 100,
+        maxTotalMergeKeys: 10000,
+      });
     } catch (error) {
       throw new Error("Failed to parse YAML configuration", { cause: error });
     }
