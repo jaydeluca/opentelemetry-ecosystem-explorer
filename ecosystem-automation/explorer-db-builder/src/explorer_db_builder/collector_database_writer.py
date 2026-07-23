@@ -23,6 +23,7 @@ from typing import Any
 
 from semantic_version import Version
 
+from explorer_db_builder import orphan_gc
 from explorer_db_builder.collector_transformer import COMPONENT_TYPES, make_index_component
 from explorer_db_builder.content_hashing import content_hash
 
@@ -86,15 +87,14 @@ class CollectorDatabaseWriter:
         self.total_bytes += len(content.encode("utf-8"))
 
     def _component_file(self, component_id: str, component_hash: str) -> Path:
-        """Compute the content-addressed path for a component (no side effects).
+        """Content-addressed path for a component, without creating its directory (unlike _get_component_path).
 
-        Kept free of directory creation so callers that only need the expected
-        path (e.g. orphan GC) don't materialize empty directories.
+        Lets callers that only need the path (e.g. orphan GC) avoid materializing empty dirs.
         """
         return self.database_dir / "components" / component_id / f"{component_id}-{component_hash}.json"
 
     def _markdown_file(self, component_name: str, markdown_hash: str) -> Path:
-        """Compute the content-addressed path for a component README (no side effects)."""
+        """Content-addressed path for a component README (does not create its directory)."""
         safe_name = self._sanitize_name(component_name)
         return self.database_dir / "markdown" / f"{safe_name}-{markdown_hash}.md"
 
@@ -330,111 +330,16 @@ class CollectorDatabaseWriter:
     def remove_orphans(self) -> int:
         """Delete content-addressed files no longer referenced by any version index.
 
-        The store is append-only on incremental runs: ``write_components``,
-        ``write_version_bundle``, and ``write_markdown`` all skip the write when a
-        file with that hash already exists, and nothing removes old files. So a
-        changed content hash (upstream metadata edit, transform change, README
-        update) leaves the previous file behind forever without a full ``--clean``.
-
-        This walks the on-disk store and deletes any file not referenced by the
-        current index set:
-
-        - ``components/*/*.json`` referenced by the ``components`` map of any
-          ``versions/*-index.json``.
-        - ``markdown/*.md`` referenced (transitively) via the ``markdown_hash``
-          field inside each live component file. Note markdown is keyed by the
-          component's ``name``, not its ``id``.
-        - ``bundles/*.json`` referenced by ``bundle_hash`` in the top-level
-          ``versions-index.json``.
-
-        Corrupt or unreadable index files are skipped with a warning rather than
-        aborting: a GC failure must never fail the build.
-
-        Returns:
-            The number of files deleted.
+        See :func:`explorer_db_builder.orphan_gc.remove_orphans`. Markdown is keyed
+        by the component's ``name``, not its ``id``.
         """
-        versions_dir = self.database_dir / "versions"
-        if not versions_dir.is_dir():
-            return 0
-
-        live_components: set[Path] = set()
-        for index_file in versions_dir.glob("*-index.json"):
-            data = self._read_json(index_file)
-            if data is None:
-                continue
-            for component_id, comp_hash in (data.get("components") or {}).items():
-                live_components.add(self._component_file(component_id, comp_hash))
-
-        # Markdown is reachable only through the markdown_hash stamped inside each
-        # live component file, keyed by the component's name (not its id).
-        live_markdown: set[Path] = set()
-        for path in live_components:
-            data = self._read_json(path)
-            if data is None:
-                continue
-            name = data.get("name")
-            markdown_hash = data.get("markdown_hash")
-            if name and markdown_hash:
-                live_markdown.add(self._markdown_file(name, markdown_hash))
-
-        # Bundle hashes live only in the top-level versions-index.json.
-        live_bundles: set[Path] = set()
-        versions_index = self.database_dir / "versions-index.json"
-        version_list = self._read_json(versions_index) if versions_index.exists() else None
-        if version_list is not None:
-            for entry in version_list.get("versions") or []:
-                bundle_hash = entry.get("bundle_hash")
-                version = entry.get("version")
-                if bundle_hash and version:
-                    live_bundles.add(self.database_dir / "bundles" / f"{version}-{bundle_hash}.json")
-
-        removed = 0
-        removed += self._sweep(self.database_dir / "components", "*/*.json", live_components)
-        removed += self._sweep(self.database_dir / "bundles", "*.json", live_bundles)
-        removed += self._sweep(self.database_dir / "markdown", "*.md", live_markdown)
-
-        # Prune component subdirectories emptied by the sweep above.
-        components_dir = self.database_dir / "components"
-        if components_dir.is_dir():
-            for child in components_dir.iterdir():
-                if child.is_dir() and not any(child.iterdir()):
-                    child.rmdir()
-
-        if removed:
-            logger.info("Removed %d orphaned file(s) from %s", removed, self.database_dir)
-        return removed
-
-    def _read_json(self, path: Path) -> dict[str, Any] | None:
-        """Read and parse a JSON file, returning None (with a warning) on failure.
-
-        Used by orphan GC so a single corrupt/unreadable file can't abort the sweep.
-        """
-        try:
-            with open(path, encoding="utf-8") as f:
-                return json.load(f)
-        except (OSError, json.JSONDecodeError) as e:
-            logger.warning("Skipping unreadable file during orphan GC: %s (%s)", path, e)
-            return None
-
-    def _sweep(self, root: Path, pattern: str, live_paths: set[Path]) -> int:
-        """Delete files under ``root`` matching ``pattern`` that aren't in ``live_paths``.
-
-        Returns the number of files deleted.
-        """
-        if not root.is_dir():
-            return 0
-
-        removed = 0
-        for path in root.glob(pattern):
-            if path in live_paths:
-                continue
-            try:
-                path.unlink()
-                removed += 1
-                logger.debug("Removed orphaned file %s", path)
-            except OSError as e:
-                logger.warning("Failed to remove orphaned file %s: %s", path, e)
-        return removed
+        return orphan_gc.remove_orphans(
+            self.database_dir,
+            content_dir="components",
+            index_sections=("components",),
+            content_file=self._component_file,
+            markdown_file=self._markdown_file,
+        )
 
     def clean(self) -> None:
         """Remove the collector database directory and recreate it empty."""

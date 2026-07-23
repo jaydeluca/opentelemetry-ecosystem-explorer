@@ -201,10 +201,9 @@ def run_collector_builder(
         db_writer.write_version_list(processed_versions, bundle_hashes)
         db_writer.write_index(latest_components)
 
-        # Incremental runs never overwrite the content-addressed store, so files whose
-        # hash changed this run are left orphaned. Sweep them now that every version index
-        # (the reachability source) is on disk. Skipped after --clean, which already wiped
-        # everything, and run before the stats summary so removals aren't miscounted.
+        # Incremental runs never overwrite the store, so files whose hash changed are left
+        # orphaned. Sweep them now that every version index (the reachability source) is on
+        # disk. Skipped after --clean, which already wiped everything.
         if not clean:
             db_writer.remove_orphans()
 

@@ -485,3 +485,15 @@ class TestRemoveOrphans:
 
         assert db_writer.remove_orphans() == 0
         assert "Skipping unreadable file during orphan GC" in caplog.text
+
+    def test_skips_gc_when_no_index_readable(self, db_writer, temp_db_dir, sample_components, caplog):
+        # Store has content on disk but every version index is unreadable, so
+        # reachability is unknown. GC must skip rather than sweep the whole store.
+        component_map = db_writer.write_components(sample_components)
+        (temp_db_dir / "versions").mkdir(exist_ok=True)
+        (temp_db_dir / "versions" / "0.150.0-index.json").write_text("{ not json", encoding="utf-8")
+
+        assert db_writer.remove_orphans() == 0
+        assert "Skipping orphan GC: no readable version index found" in caplog.text
+        first_id = next(iter(component_map))
+        assert db_writer._component_file(first_id, component_map[first_id]).exists()
