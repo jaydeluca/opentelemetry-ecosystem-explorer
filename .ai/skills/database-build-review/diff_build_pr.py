@@ -45,7 +45,9 @@ import sys
 from collections import defaultdict
 from dataclasses import dataclass, field
 
-# Resolve git's full path once so subprocess calls don't rely on PATH lookup (satisfies ruff S607).
+# Resolve git's absolute path once so the subprocess calls pass a full path (satisfies ruff S607,
+# "partial executable path"). If git isn't on PATH, which() returns None and we fall back to the
+# bare "git" — a PATH lookup that surfaces a clear error at run time rather than lint time.
 _GIT = shutil.which("git") or "git"
 
 DATA_ROOT = "ecosystem-explorer/public/data"
@@ -67,7 +69,12 @@ def git(root: str, *args: str) -> str:
 
 
 def git_show(root: str, ref: str, path: str) -> str | None:
-    """Return the contents of ``path`` at ``ref``, or None if it doesn't exist there."""
+    """Return the contents of ``path`` at ``ref``, or None on any ``git show`` failure.
+
+    None means the object couldn't be read — the usual case is a missing path at that ref, but it
+    also covers an unknown ref, an ambiguous ref, or permission issues. Callers treat "unreadable"
+    the same regardless of cause, so the reason isn't distinguished here.
+    """
     result = subprocess.run([_GIT, "-C", root, "show", f"{ref}:{path}"], capture_output=True, text=True)
     if result.returncode != 0:
         return None
@@ -101,8 +108,22 @@ def list_manifest_paths(root: str, ref: str, ecosystem: str) -> list[str]:
     return [p for p in out.stdout.splitlines() if p.endswith("-index.json")]
 
 
+# A manifest can spread component names across several sections (javaagent uses both
+# ``instrumentations`` and ``custom_instrumentations``). Those sections share one on-disk namespace,
+# so a name could in principle appear in more than one — a plain merge would let one section
+# silently overwrite the other and hide its churn. We namespace the in-memory keys by section to
+# keep every (section, name) pair distinct, and strip the namespace back off when resolving the
+# on-disk blob path or presenting a component to the reader.
+_NS_SEP = "\x1f"  # ASCII unit separator: never appears in a component name.
+
+
+def _bare_component(component: str) -> str:
+    """Strip the manifest-section namespace that load_manifests() prepends to each key."""
+    return component.rsplit(_NS_SEP, 1)[-1]
+
+
 def load_manifests(root: str, ref: str, ecosystem: str) -> dict[str, dict[str, str]]:
-    """Return {version: {component: hash}} for every manifest at ``ref``."""
+    """Return {version: {section-namespaced component: hash}} for every manifest at ``ref``."""
     map_keys = ECOSYSTEMS[ecosystem]["map_keys"]
     manifests: dict[str, dict[str, str]] = {}
     for path in list_manifest_paths(root, ref, ecosystem):
@@ -113,7 +134,8 @@ def load_manifests(root: str, ref: str, ecosystem: str) -> dict[str, dict[str, s
         version = data.get("version") or path.rsplit("/", 1)[-1].removesuffix("-index.json")
         combined: dict[str, str] = {}
         for key in map_keys:
-            combined.update(data.get(key) or {})
+            for name, digest in (data.get(key) or {}).items():
+                combined[f"{key}{_NS_SEP}{name}"] = digest
         manifests[version] = combined
     return manifests
 
@@ -151,7 +173,7 @@ def compare(base: dict[str, dict[str, str]], head: dict[str, dict[str, str]]) ->
 
 def blob_path(ecosystem: str, component: str, digest: str) -> str:
     subdir = ECOSYSTEMS[ecosystem]["content_subdir"]
-    safe = sanitize(component)
+    safe = sanitize(_bare_component(component))
     return f"{DATA_ROOT}/{ecosystem}/{subdir}/{safe}/{safe}-{digest}.json"
 
 
@@ -259,7 +281,11 @@ def main() -> int:
         print("\n" + "-" * 78)
         print(f"[{len(pairs)} (component, version) pairs]")
         samples = sorted(pairs)[: args.samples]
-        print("  e.g. " + ", ".join(f"{c}@{v}" for c, v in samples) + (" ..." if len(pairs) > len(samples) else ""))
+        print(
+            "  e.g. "
+            + ", ".join(f"{_bare_component(c)}@{v}" for c, v in samples)
+            + (" ..." if len(pairs) > len(samples) else "")
+        )
         if diff:
             for line in diff.splitlines():
                 print("    " + line)
