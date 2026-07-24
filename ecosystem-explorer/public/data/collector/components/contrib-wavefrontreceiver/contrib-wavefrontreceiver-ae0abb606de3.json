@@ -1,0 +1,27 @@
+{
+  "description": null,
+  "display_name": "Wavefront Receiver",
+  "distribution": "contrib",
+  "ecosystem": "collector",
+  "id": "contrib-wavefrontreceiver",
+  "markdown_hash": "64d060985fe8",
+  "name": "wavefrontreceiver",
+  "repository": "opentelemetry-collector-contrib",
+  "status": {
+    "class": "receiver",
+    "codeowners": {
+      "active": [
+        "samiura"
+      ]
+    },
+    "distributions": [
+      "contrib"
+    ],
+    "stability": {
+      "deprecated": [
+        "metrics"
+      ]
+    }
+  },
+  "type": "receiver"
+}
