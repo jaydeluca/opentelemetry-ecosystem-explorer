@@ -15,28 +15,17 @@
  */
 
 /*
- * Minimal i18next backend that fetches locale JSON from the static
- * public/locales tree. Replaces i18next-http-backend, whose configurable
- * surface (custom request functions, XHR fallback, reload intervals, missing-key
- * POSTs, multi-namespace loads) is unused here — the app only ever needs one
- * GET per (language, namespace).
- *
- * i18next accepts a plain object module as long as it carries `type: "backend"`,
- * so no class or prototype constructor is needed for a single i18n instance.
+ * Minimal replacement for i18next-http-backend: the app only ever needs one GET
+ * per (language, namespace) from the static public/locales tree.
  */
 import type { BackendModule, ReadCallback, ResourceKey } from "i18next";
 
-/** Mirrors the `loadPath` previously passed to i18next-http-backend. */
 const LOAD_PATH = "/locales/{{lng}}/{{ns}}.json";
 
 /**
- * Builds the request URL for one (language, namespace) pair.
- *
- * Both values are percent-encoded rather than interpolated raw. `language` can
- * originate from user-controlled input (the `?lng=` query parameter, or a
- * localStorage value written by an earlier visit), so encoding is what keeps a
- * value like `../../secret` from escaping the locales directory. Namespaces are
- * compile-time constants, but are encoded too so the rule holds for both slots.
+ * `language` is user-controlled (the `?lng=` query parameter, or a localStorage
+ * value written by an earlier visit), so percent-encoding is what keeps a value
+ * like `../../secret` from escaping the locales directory.
  */
 function buildUrl(language: string, namespace: string): string {
   return LOAD_PATH.replace("{{lng}}", encodeURIComponent(language)).replace(
@@ -46,11 +35,10 @@ function buildUrl(language: string, namespace: string): string {
 }
 
 /**
- * The second callback argument is i18next's retry flag: `true` asks it to try
- * the same resource again later. Retry only on failures that a later attempt
- * could plausibly resolve — network errors and 5xx. A 4xx means the file is
- * genuinely absent, and a parse failure means it is present but malformed;
- * retrying either just burns requests.
+ * The second callback argument is i18next's retry flag. Set it only for failures
+ * a later attempt could plausibly resolve — network errors and 5xx. A 4xx means
+ * the file is absent and a parse failure means it is malformed; retrying either
+ * just burns requests.
  */
 async function loadResource(url: string, callback: ReadCallback): Promise<void> {
   let response: Response;
@@ -81,8 +69,7 @@ async function loadResource(url: string, callback: ReadCallback): Promise<void> 
 export const httpBackend: BackendModule = {
   type: "backend",
 
-  // Options come from module constants rather than i18next's `backend` config
-  // block, so there is nothing to wire up here.
+  // Required by the interface; this backend takes no options.
   init() {},
 
   read(language, namespace, callback) {

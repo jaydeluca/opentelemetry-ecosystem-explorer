@@ -29,7 +29,7 @@ i18n
     load: "languageOnly",
     ns: [...NAMESPACES],
     defaultNS: "common",
-    // The load path is a constant inside http-backend.ts, not an option here.
+    // No `backend` block: the load path is a constant inside http-backend.ts.
     interpolation: { escapeValue: false },
   });
 

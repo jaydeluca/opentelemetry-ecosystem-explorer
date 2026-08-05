@@ -17,7 +17,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import type { CallbackError, ResourceKey } from "i18next";
 import { httpBackend } from "@/i18n/http-backend";
 
-/** Invokes read() and resolves with whatever it passes to the i18next callback. */
+/** Resolves with whatever read() passes to the i18next callback. */
 function read(
   language: string,
   namespace: string

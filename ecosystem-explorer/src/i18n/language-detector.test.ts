@@ -18,7 +18,7 @@ import { languageDetector } from "@/i18n/language-detector";
 
 const STORAGE_KEY = "i18nextLng";
 
-/** detect() is optional on i18next's async detector interface, so narrow it once. */
+/** detect() is optional on i18next's detector interface, so narrow it once. */
 function detect(): string[] {
   return languageDetector.detect() as string[];
 }
@@ -31,10 +31,7 @@ function setNavigatorLanguages(languages: string[]) {
   vi.spyOn(window.navigator, "languages", "get").mockReturnValue(languages);
 }
 
-/**
- * jsdom reports navigator.language as "en-US", so both navigator sources have to
- * be silenced for a test to assert on the other detection sources in isolation.
- */
+/** jsdom reports navigator.language as "en-US", so both navigator sources need silencing to isolate the others. */
 function silenceNavigator() {
   setNavigatorLanguages([]);
   vi.spyOn(window.navigator, "language", "get").mockReturnValue("");
