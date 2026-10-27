@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { defineConfig } from "vite-plus";
+// Type-only import: CI jobs that install only ecosystem-explorer/ still load this file when
+// vp fmt searches upward, and the root vite-plus package is not installed there.
+import type { ViteUserConfig } from "vite-plus";
 
-export default defineConfig({
+export default {
   fmt: {
     semi: true,
     singleQuote: false,
@@ -52,4 +54,4 @@ export default defineConfig({
       ".ai",
     ],
   },
-});
+} satisfies ViteUserConfig;
